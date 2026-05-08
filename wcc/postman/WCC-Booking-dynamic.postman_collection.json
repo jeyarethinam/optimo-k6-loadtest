@@ -1,0 +1,3875 @@
+{
+  "info": {
+    "_postman_id": "bd311e96-9a5e-4589-a4e4-5dbf70097c1c",
+    "name": "WCC Booking follow (Dynamic load-ready)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12512532"
+  },
+  "item": [
+    {
+      "name": "1 - Login (common)",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function readVar(key) {",
+                  "  return pm.variables.get(key) || pm.environment.get(key);",
+                  "}",
+                  "",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  if (!json) {",
+                  "    pm.test(\"Request failed\", function () {",
+                  "      throw new Error(\"Invalid JSON response\");",
+                  "    });",
+                  "  } else {",
+                  "    const token = json.token || json.data?.token || json.meta?.token;",
+                  "    if (!token) {",
+                  "      pm.test(\"Request failed\", function () {",
+                  "        throw new Error(\"Token not found\");",
+                  "      });",
+                  "    } else {",
+                  "      saveVar(\"token\", token);",
+                  "    }",
+                  "  }",
+                  "} else {",
+                  "  const error = safeJsonParse(pm.response.text());",
+                  "  const errorMessage = error?.message || error?.title || \"Request failed\";",
+                  "  pm.test(\"Request failed\", function () {",
+                  "    throw new Error(errorMessage);",
+                  "  });",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{login_username}}\",\n    \"password\": \"{{login_password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/v4.1/users/login?fields=token",
+              "host": [
+                "{{base_Generic}}"
+              ],
+              "path": [
+                "api",
+                "v4.1",
+                "users",
+                "login"
+              ],
+              "query": [
+                {
+                  "key": "fields",
+                  "value": "token"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2 - Simple booking (~80% users)",
+      "item": [
+        {
+          "name": "GET First 10 Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "\"18822444517080\""
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings?include=client,contact,bookingStatus,collectionAddress,BusinessArea&page.number=&page.size=10",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "client,contact,bookingStatus,collectionAddress,BusinessArea"
+                },
+                {
+                  "key": "page.number",
+                  "value": ""
+                },
+                {
+                  "key": "page.size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET user-defined-fields",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "\"184316334728\""
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/system/user-defined-fields?include=userDefinedFieldValues",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "system",
+                "user-defined-fields"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "userDefinedFieldValues"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET business-areas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "\"-4268416106\""
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/products/business-areas?page.size=100",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "products",
+                "business-areas"
+              ],
+              "query": [
+                {
+                  "key": "page.size",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET client-types",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "If-None-Match",
+                "value": "\"17116884966\""
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/customers/client-types",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "customers",
+                "client-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "https://wcc-uat.optimo.training/bookingmanager//api/user/GetUser",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "bookingmanager",
+                "",
+                "api",
+                "user",
+                "GetUser"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Contact",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/customers/contacts/1?include=client&fields=client.saleschannelID",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "customers",
+                "contacts",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "client"
+                },
+                {
+                  "key": "fields",
+                  "value": "client.saleschannelID"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Payment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/payments",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Payment-Methods",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.2/payments/payment-methods",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.2",
+                "payments",
+                "payment-methods"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET booking eligible-documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/eligible-documents?onlybookingdocuments=true&documentTemplateType=worddatadocument&include=datadocument.documentTemplate&page.number=1&page.size=10&sort=Name",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "eligible-documents"
+              ],
+              "query": [
+                {
+                  "key": "onlybookingdocuments",
+                  "value": "true"
+                },
+                {
+                  "key": "documentTemplateType",
+                  "value": "worddatadocument"
+                },
+                {
+                  "key": "include",
+                  "value": "datadocument.documentTemplate"
+                },
+                {
+                  "key": "page.number",
+                  "value": "1"
+                },
+                {
+                  "key": "page.size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "Name"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET booking-details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Accept",
+                "value": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "document"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "navigate"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "Sec-Fetch-User",
+                "value": "?1"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "Upgrade-Insecure-Requests",
+                "value": "1"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "https://wcc-uat.optimo.training/bookingmanager/#/booking-details",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "bookingmanager",
+                ""
+              ],
+              "hash": "/booking-details"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Client",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/customers/clients/1?include=Contacts,CommunicationMethods,ContactAddresses",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "customers",
+                "clients",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Contacts,CommunicationMethods,ContactAddresses"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/documents?include=datadocument.documentTemplate,EmailDataDocument.Attachments,InvoiceDocument",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "documents"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "datadocument.documentTemplate,EmailDataDocument.Attachments,InvoiceDocument"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Entity-configurations profile-details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "httpOption",
+                "value": "1"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/system/entity-configurations/profiles/4/profile-details",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "system",
+                "entity-configurations",
+                "profiles",
+                "4",
+                "profile-details"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Empty Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"booking\",\"attributes\":{\"salesChannelId\":1}}}"
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  const id = json && json.data && json.data.id;",
+                  "  saveVar(\"wcc_simple_booking_id\", id);",
+                  "  pm.test(\"Saved booking id\", function () { pm.expect(id).to.be.ok; });",
+                  "} else {",
+                  "  pm.test(\"Create Empty Booking failed\", function () { pm.expect.fail(\"status \" + pm.response.code); });",
+                  "}"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Cancellation-policy-schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/cancellation-policy-schedule?include=cancellationPolicyDetail",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "cancellation-policy-schedule"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "cancellationPolicyDetail"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Booking-statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/booking-statuses?filters.ShowParentBookingStatuses=true&include=BusinessAreas&sort=2",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "booking-statuses"
+              ],
+              "query": [
+                {
+                  "key": "filters.ShowParentBookingStatuses",
+                  "value": "true"
+                },
+                {
+                  "key": "include",
+                  "value": "BusinessAreas"
+                },
+                {
+                  "key": "sort",
+                  "value": "2"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Notes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/notes",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "notes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/invoices?include=client,InvoiceLines,RefundRequest",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "client,InvoiceLines,RefundRequest"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Booking Payment-Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "host",
+                "value": "wcc-uat.optimo.training"
+              },
+              {
+                "key": "Token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "Language",
+                "value": "en"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "User-Agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Sec-Fetch-Dest",
+                "value": "empty"
+              },
+              {
+                "key": "Sec-Fetch-Mode",
+                "value": "cors"
+              },
+              {
+                "key": "Sec-Fetch-Site",
+                "value": "same-origin"
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/payment-schedule?include=PaymentTerm,PaymentTermDetails",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "payment-schedule"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "PaymentTerm,PaymentTermDetails"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Client Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"CorporateClient\",\r\n        \"tid\": \"-1\",\r\n        \"attributes\": {\r\n            \"ProfilePicture\": \"\",\r\n            \"Active\": true,\r\n            \"ClientName\": \"Tharsha\",\r\n            \"ClientCategoryId\": \"2\",\r\n            \"ClientTypeId\": \"1\",\r\n            \"DateRegistered\": \"2026-04-23T15:22:14\",\r\n            \"suspendedBy\": \"Optimo User\"\r\n        },\r\n        \"relationships\": {\r\n            \"accountmanager\": {\r\n                \"data\": {\r\n                    \"id\": \"2\",\r\n                    \"type\": \"user\"\r\n                }\r\n            },\r\n            \"defaultvenue\": {\r\n                \"data\": {\r\n                    \"id\": 345,\r\n                    \"type\": \"venue\"\r\n                }\r\n            },\r\n            \"Address\": {\r\n                \"data\": {\r\n                    \"id\": \"-5\",\r\n                    \"type\": \"Address\"\r\n                }\r\n            },\r\n            \"PriceConcession\": {\r\n                \"data\": {\r\n                    \"id\": -1,\r\n                    \"type\": \"PriceConcession\"\r\n                }\r\n            },\r\n            \"communicationMethods\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"CommunicationMethod\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-2\",\r\n                        \"type\": \"CommunicationMethod\"\r\n                    }\r\n                ]\r\n            },\r\n            \"contacts\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"Contact\"\r\n                    }\r\n                ]\r\n            },\r\n            \"clientVenues\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": 345,\r\n                        \"type\": \"venue\"\r\n                    }\r\n                ]\r\n            },\r\n            \"bookingTypes\": {\r\n                \"data\": []\r\n            }\r\n        }\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"venue\",\r\n            \"id\": \"345\",\r\n            \"attributes\": {\r\n                \"description\": \"\",\r\n                \"userDefault\": true,\r\n                \"venueTypeId\": 1,\r\n                \"venueType\": \"Default Venue\",\r\n                \"email\": \"testbookings@optimosoftware.biz\",\r\n                \"assetClassID\": 0,\r\n                \"name\": \"Alamanda Reserve\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"CommunicationMethod\",\r\n            \"id\": \"-5\",\r\n            \"attributes\": {\r\n                \"communicationTypeID\": \"6\",\r\n                \"value\": \"test@gmail.com\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"CommunicationMethod\",\r\n            \"id\": \"-4\",\r\n            \"attributes\": {\r\n                \"communicationTypeID\": \"5\",\r\n                \"value\": \"test@gmail.com\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"CommunicationMethod\",\r\n            \"id\": \"-3\",\r\n            \"attributes\": {\r\n                \"communicationTypeID\": \"1\",\r\n                \"value\": \"4758590222\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"CommunicationMethod\",\r\n            \"id\": \"-2\",\r\n            \"attributes\": {\r\n                \"communicationTypeID\": \"5\",\r\n                \"value\": \"test@gmail.com\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"CommunicationMethod\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"communicationTypeID\": \"1\",\r\n                \"value\": \"7594993933\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"Address\",\r\n            \"id\": \"-5\",\r\n            \"attributes\": {\r\n                \"Address1\": \"22 Sylvan Way\",\r\n                \"postCode\": \"679000\",\r\n                \"city\": \"Parsippany, NJ 07054\",\r\n                \"countryId\": \"14\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"Contact\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"UserName\": \"\",\r\n                \"Active\": true,\r\n                \"TitleId\": \"2\",\r\n                \"FirstName\": \"Tharsha\",\r\n                \"LastName\": \"Loganathan\",\r\n                \"DecisionMaker\": false,\r\n                \"isSameAsClientAddress\": true,\r\n                \"isPrimaryContact\": false,\r\n                \"isDefaultInvoiceContact\": false\r\n            },\r\n            \"relationships\": {\r\n                \"defaultvenue\": {\r\n                    \"data\": {\r\n                        \"id\": 345,\r\n                        \"type\": \"venue\"\r\n                    }\r\n                },\r\n                \"CommunicationMethods\": {\r\n                    \"data\": [\r\n                        {\r\n                            \"id\": \"-3\",\r\n                            \"type\": \"CommunicationMethod\"\r\n                        },\r\n                        {\r\n                            \"id\": \"-4\",\r\n                            \"type\": \"CommunicationMethod\"\r\n                        },\r\n                        {\r\n                            \"id\": \"-5\",\r\n                            \"type\": \"CommunicationMethod\"\r\n                        }\r\n                    ]\r\n                },\r\n                \"accountManager\": {\r\n                    \"data\": {\r\n                        \"id\": \"2\",\r\n                        \"type\": \"user\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/customers/clients?include=contacts,communicationmethods,address,ContactAddresses",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "customers",
+                "clients"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "contacts,communicationmethods,address,ContactAddresses"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  const clientId = json && json.data && json.data.id;",
+                  "  saveVar(\"wcc_simple_client_id\", clientId);",
+                  "  let contactId = \"\";",
+                  "  const inc = (json && json.included) || [];",
+                  "  for (let i = 0; i < inc.length; i++) {",
+                  "    if (inc[i].type === \"Contact\" || inc[i].type === \"contact\") {",
+                  "      contactId = inc[i].id;",
+                  "      break;",
+                  "    }",
+                  "  }",
+                  "  saveVar(\"wcc_simple_contact_id\", contactId);",
+                  "  pm.test(\"Saved client/contact\", function () {",
+                  "    pm.expect(clientId).to.be.ok;",
+                  "    pm.expect(contactId).to.be.ok;",
+                  "  });",
+                  "} else {",
+                  "  pm.test(\"Client Create failed\", function () { pm.expect.fail(\"status \" + pm.response.code); });",
+                  "}"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now() + \"_\" + Math.random().toString(36).slice(2, 8);",
+                  "pm.variables.set(\"wcc_client_suffix\", suffix);",
+                  "const raw = pm.request.body && pm.request.body.raw;",
+                  "if (!raw) return;",
+                  "try {",
+                  "  const o = JSON.parse(raw);",
+                  "  if (o.data && o.data.attributes) {",
+                  "    o.data.attributes.ClientName = \"WCC_Load_\" + suffix;",
+                  "  }",
+                  "  const inc = o.included || [];",
+                  "  for (let i = 0; i < inc.length; i++) {",
+                  "    if (inc[i].type === \"Contact\" && inc[i].attributes) {",
+                  "      inc[i].attributes.FirstName = \"WCC\";",
+                  "      inc[i].attributes.LastName = \"Load_\" + suffix.slice(-6);",
+                  "    }",
+                  "    if (inc[i].type === \"CommunicationMethod\" && inc[i].attributes && inc[i].attributes.value && inc[i].attributes.value.indexOf(\"@\") > -1) {",
+                  "      inc[i].attributes.value = \"wcc_load_\" + suffix + \"@example.test\";",
+                  "    }",
+                  "  }",
+                  "  pm.request.body.raw = JSON.stringify(o);",
+                  "} catch (e) { console.warn(\"Client Create prerequest:\", e); }"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Client to Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"booking\",\"attributes\":{\"queueFlow\":false},\"relationships\":{\"contact\":{\"data\":{\"id\":\"{{wcc_simple_contact_id}}\",\"type\":\"contact\"}},\"InvoiceContact\":{\"data\":{\"id\":\"{{wcc_simple_contact_id}}\",\"type\":\"contact\"}}},\"id\":\"{{wcc_simple_booking_id}}\"}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Package to booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"booking\",\r\n        \"attributes\": {\r\n            \"attendees\": 1\r\n        },\r\n        \"relationships\": {\r\n            \"bookingPackages\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"BookingPackage\"\r\n                    }\r\n                ]\r\n            }\r\n        },\r\n        \"id\": \"{{wcc_simple_booking_id}}\"\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"BookingPackage\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"Name\": \"Load Test 24/04/2026\",\r\n                \"Quantity\": 1,\r\n                \"Attendees\": 1,\r\n                \"StartDate\": \"2026-04-26T00:00:00\",\r\n                \"EndDate\": \"2026-04-26T23:59:59\",\r\n                \"PriceTypeId\": 1,\r\n                \"UnitPrice\": 0,\r\n                \"TaxRate\": 1,\r\n                \"Margin\": 0,\r\n                \"SingleDayPackage\": true,\r\n                \"waitListEnabled\": false,\r\n                \"sequence\": 0,\r\n                \"netAmount\": 0,\r\n                \"totalAmount\": 0,\r\n                \"reserveInExternalSystem\": false,\r\n                \"unitPriceIncludingTax\": 0,\r\n                \"unitPriceExcludingTax\": 0,\r\n                \"grossAmount\": 0\r\n            },\r\n            \"relationships\": {\r\n                \"Package\": {\r\n                    \"data\": {\r\n                        \"id\": \"{{wcc_simple_package_id}}\",\r\n                        \"type\": \"PrivatePackage\"\r\n                    }\r\n                },\r\n                \"Event\": {\r\n                    \"data\": {\r\n                        \"id\": \"{{wcc_simple_event_id}}\",\r\n                        \"type\": \"Event\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  let pkgId = \"\";",
+                  "  const inc = (json && json.included) || [];",
+                  "  for (let i = 0; i < inc.length; i++) {",
+                  "    if (inc[i].type === \"BookingPackage\") {",
+                  "      pkgId = inc[i].id;",
+                  "      break;",
+                  "    }",
+                  "  }",
+                  "  if (!pkgId && json && json.data && json.data.relationships && json.data.relationships.bookingPackages) {",
+                  "    const d = json.data.relationships.bookingPackages.data;",
+                  "    if (d && d[0]) pkgId = d[0].id;",
+                  "  }",
+                  "  saveVar(\"wcc_simple_booking_package_id\", pkgId);",
+                  "  pm.test(\"Saved booking package id\", function () { pm.expect(pkgId).to.be.ok; });",
+                  "} else {",
+                  "  pm.test(\"Add Package failed\", function () { pm.expect.fail(\"status \" + pm.response.code); });",
+                  "}"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add Upsell to booking Pakcage",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"booking\",\r\n        \"id\": \"{{wcc_simple_booking_id}}\",\r\n        \"attributes\": {\r\n            \"queueFlow\": false\r\n        },\r\n        \"relationships\": {\r\n            \"bookingPackages\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"{{wcc_simple_booking_package_id}}\",\r\n                        \"type\": \"BookingPackage\"\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"BookingPackage\",\r\n            \"id\": \"{{wcc_simple_booking_package_id}}\",\r\n            \"attributes\": {\r\n                \"name\": \"Load Test 24/04/2026\"\r\n            },\r\n            \"relationships\": {\r\n                \"bookingItems\": {\r\n                    \"data\": [\r\n                        {\r\n                            \"id\": \"-1\",\r\n                            \"type\": \"PrivateBookinggeneralAdmissionItem\"\r\n                        }\r\n                    ]\r\n                },\r\n                \"package\": {\r\n                    \"data\": {\r\n                        \"id\": \"{{wcc_simple_package_id}}\",\r\n                        \"type\": \"PrivatePackage\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"PrivateBookinggeneralAdmissionItem\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"Upsell\": true,\r\n                \"name\": \"Load Test 24/04/2026\",\r\n                \"quantity\": 1,\r\n                \"ItineraryItem\": false,\r\n                \"DespatchItem\": false,\r\n                \"PrintBeforeDespatch\": false,\r\n                \"ScanBeforeDespatch\": false,\r\n                \"ShowInInvoice\": true,\r\n                \"StartTime\": \"2026-04-26T00:00:00\",\r\n                \"EndTime\": \"2026-04-26T23:59:59\",\r\n                \"units\": 24\r\n            },\r\n            \"relationships\": {\r\n                \"Item\": {\r\n                    \"data\": {\r\n                        \"id\": \"{{wcc_general_admission_item_id}}\",\r\n                        \"type\": \"generalAdmissionItem\"\r\n                    }\r\n                },\r\n                \"priceGroup\": {\r\n                    \"data\": {\r\n                        \"id\": \"1\",\r\n                        \"type\": \"PriceGroup\"\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"booking\",\"attributes\":{\"expiryDate\":null,\"temporary\":false,\"queueFlow\":false},\"relationships\":{\"bookingStatus\":{\"data\":{\"id\": \"{{wcc_simple_confirm_status_id}}\",\"type\":\"bookingStatus\"}}},\"id\":\"{{wcc_simple_booking_id}}\"}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Modify the booking item price",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"booking\",\"attributes\":{\"queueFlow\":false},\"relationships\":{\"bookingPackages\":{\"data\":[{\"id\": \"{{wcc_simple_booking_package_id}}\",\"type\":\"BookingPackage\"}]}},\"id\":\"{{wcc_simple_booking_id}}\"},\"included\":[{\"type\":\"BookingPackage\",\"id\": \"{{wcc_simple_booking_package_id}}\",\"attributes\":{\"unitPriceIncludingTax\":200}}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invoice Create",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"Invoice\",\"id\":\"-1\",\"attributes\":{},\"relationships\":{\"invoiceLines\":{\"data\":[{\"tid\":\"-1\",\"type\":\"invoiceItem\"}]},\"Contact\":{\"data\":{\"id\":\"{{wcc_simple_contact_id}}\",\"type\":\"contact\"}},\"Address\":{\"data\":{\"id\":\"-1\",\"type\":\"address\"}}}},\"included\":[{\"type\":\"address\",\"id\":\"-1\",\"attributes\":{\"Id\":\"46139\",\"address1\":\"22 Sylvan Way\",\"address2\":\"\",\"address3\":\"\",\"city\":\"Parsippany, NJ 07054\",\"countryID\":14,\"country\":\"Australia\",\"county\":\"\",\"stateCode\":\"\",\"postCode\":\"679000\"}},{\"type\":\"invoiceItem\",\"id\":\"-1\",\"tid\":\"-1\",\"attributes\":{},\"relationships\":{\"bookingItem\":{\"data\":{\"tid\":\"-1\",\"type\":\"bookingItem\"}}}},{\"type\":\"bookingItem\",\"id\":\"-1\",\"tid\":\"-1\",\"attributes\":{\"id\":\"263348\"}}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/invoices",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "invoices"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Payment",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"creditCardReceipt\",\r\n        \"attributes\": {\r\n            \"paidAmount\": 200,\r\n            \"allocatedAmount\": 200,\r\n            \"currencyRate\": 1,\r\n            \"paymentNote\": \"\",\r\n            \"holderName\": \"Tharsha\",\r\n            \"creditCardTypeID\": \"1\",\r\n            \"last4Digits\": \"1234\",\r\n            \"authorisationCode\": \"123\"\r\n        },\r\n        \"relationships\": {\r\n            \"booking\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_simple_booking_id}}\",\r\n                    \"type\": \"booking\"\r\n                }\r\n            },\r\n            \"currency\": {\r\n                \"data\": {\r\n                    \"id\": \"7\",\r\n                    \"type\": \"currency\"\r\n                }\r\n            },\r\n            \"user\": {\r\n                \"data\": {\r\n                    \"id\": \"2\",\r\n                    \"type\": \"user\"\r\n                }\r\n            },\r\n            \"invoice\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"12912\",\r\n                        \"type\": \"invoice\"\r\n                    }\r\n                ]\r\n            },\r\n            \"site\": {\r\n                \"data\": {\r\n                    \"type\": \"site\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/payments",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Booking Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"note\",\r\n        \"attributes\": {\r\n            \"entityType\": \"Booking\",\r\n            \"entityTypeID\": 10,\r\n            \"noteType\": \"General\",\r\n            \"noteTypeId\": 1,\r\n            \"html\": \"<div style=\\\"font-size: 16px;\\\"><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 13px; background-color: transparent; color: rgb(33, 33, 33); font-weight: 600 !important;\\\">DIETARY REQUIREMENTS:</span></div></div><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 16px; background-color: transparent;\\\"><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">46 x Vegetarian&nbsp;</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">18 x Halal</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">12 x Gluten Free</span></font></div><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 13px; color: rgb(33, 33, 33); background-color: transparent;\\\">11 x Vegan</span></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">5 x No Beef or Pork</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">3 x No Beef</span></font></div><div style=\\\"font-size: 16px;\\\"><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Allergic to cinnamon (Melanie Zammit)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Allergic to soy and cashews (Nikki Outred)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x ANAPHYLAXIS to: Kiwi, tree nuts, walnuts, pine nuts, peanuts (Kate Goodwin)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Dairy free (Trudy Price)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Fructose Intolerant- no garlic, onion or any sauces etc (Briony Smith)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Gluten Free and NO nuts (Mal Saker)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No whole eggs. Eggs are acceptable only as an ingredient in baked goods (Annah&nbsp; Chikukwa)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No avocado/banana (Mel Bragg)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No raw onion (Angela Dalziel)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No seafood (Kelly Waye)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No whole nuts and seeds (Jane Coyle)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Cold/ Raw Meats please – Pregnant (Sandra Tavic)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Dairy, No Meat (does eat egg and honey) (Jordan Fay)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Egg (Parul Aggarwal)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Pescatarian (Chandima Bandara)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian, no egg (Jaya Chandla)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian only on Mondays and Tuesdays (Sanju Ratnam)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian or just chicken (no other meat) (Abhilasha Mishra)</p></div></span></div>\",\r\n            \"plainText\": \"DIETARY REQUIREMENTS:46 x Vegetarian 18 x Halal12 x Gluten Free11 x Vegan5 x No Beef or Pork3 x No Beef1 x Allergic to cinnamon (Melanie Zammit)1 x Allergic to soy and cashews (Nikki Outred)1 x ANAPHYLAXIS to: Kiwi, tree nuts, walnuts, pine nuts, peanuts (Kate Goodwin)1 x Dairy free (Trudy Price)1 x Fructose Intolerant- no garlic, onion or any sauces etc (Briony Smith)1 x Gluten Free and NO nuts (Mal Saker)1 x No whole eggs. Eggs are acceptable only as an ingredient in baked goods (Annah  Chikukwa)1 x No avocado/banana (Mel Bragg)1 x No raw onion (Angela Dalziel)1 x No seafood (Kelly Waye)1 x No whole nuts and seeds (Jane Coyle)1 x No Cold/ Raw Meats please – Pregnant (Sandra Tavic)1 x No Dairy, No Meat (does eat egg and honey) (Jordan Fay)1 x No Egg (Parul Aggarwal)1 x Pescatarian (Chandima Bandara)1 x Vegetarian, no egg (Jaya Chandla)1 x Vegetarian only on Mondays and Tuesdays (Sanju Ratnam)1 x Vegetarian or just chicken (no other meat) (Abhilasha Mishra)\"\r\n        }\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/notes",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "notes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Booking Item GET",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "if-none-match",
+                "value": "\"-4685991260\""
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_simple_booking_id}}/booking-packages/{{wcc_simple_booking_package_id}}/booking-items?include=allocations,timeslot,asset,item,splitBookingItems,supplier,SetupTimeslot,TeardownTimeslot,RecurrentBookingItems,RecurrenceOption,Conflicts,PrivateEventInstance,Seat,EventBlock,BookingItemDetails&attendees=1",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_simple_booking_id}}",
+                "booking-packages",
+                "{{wcc_simple_booking_package_id}}",
+                "booking-items"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "allocations,timeslot,asset,item,splitBookingItems,supplier,SetupTimeslot,TeardownTimeslot,RecurrentBookingItems,RecurrenceOption,Conflicts,PrivateEventInstance,Seat,EventBlock,BookingItemDetails"
+                },
+                {
+                  "key": "attendees",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Booking Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"bookingTask\",\r\n        \"id\": \"-1\",\r\n        \"attributes\": {\r\n            \"reference\": \"BP{{wcc_simple_booking_id}}\",\r\n            \"taskType\": \"Booking\",\r\n            \"taskTypeId\": 1,\r\n            \"isActive\": true,\r\n            \"dueDate\": \"2026-04-30T14:47:00\",\r\n            \"taskActiveScenarioId\": \"1\",\r\n            \"periodId\": 10,\r\n            \"dateTypeId\": 4,\r\n            \"durationTypeId\": 1,\r\n            \"noOfDays\": 3,\r\n            \"setSpecificTime\": true,\r\n            \"isAutoDueDate\": true,\r\n            \"specificTime\": \"2026-04-30T14:47:00\",\r\n            \"reminderDate\": \"\",\r\n            \"sendReminderForAssignee\": false,\r\n            \"name\": \"Task A\",\r\n            \"date\": \"2026-04-26T14:47:39\",\r\n            \"note\": \"\"\r\n        },\r\n        \"relationships\": {\r\n            \"taskNotifications\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-2\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-3\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-4\",\r\n                        \"type\": \"taskNotification\"\r\n                    }\r\n                ]\r\n            },\r\n            \"taskAutoCancellation\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"taskAutoCancel\"\r\n                    }\r\n                ]\r\n            },\r\n            \"fromUser\": {\r\n                \"data\": {\r\n                    \"id\": \"2\",\r\n                    \"type\": \"user\"\r\n                }\r\n            },\r\n            \"assignedUserGroups\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"38\",\r\n                        \"type\": \"group\"\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"user\",\r\n            \"id\": \"2\",\r\n            \"attributes\": {\r\n                \"firstName\": \"Optimo\",\r\n                \"lastName\": \"User\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskAutoCancel\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-4\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 3,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-3\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 3,\r\n                \"notificationType\": 2,\r\n                \"notificationTypeID\": 2,\r\n                \"templateId\": \"39\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-2\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 2,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 1,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api//V4.2/tasks",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "",
+                "V4.2",
+                "tasks"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3 - Complex booking (~20% users)",
+      "item": [
+        {
+          "name": "Create Daily Recurring -5 Days",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/diary/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"booking\",\"attributes\":{\"salesChannelId\":1},\"relationships\":{\"bookingPackages\":{\"data\":[{\"id\":\"-1\",\"type\":\"BookingPackage\"}]},\"bookingStatus\":{\"data\":{\"id\": \"{{wcc_complex_draft_status_id}}\",\"type\":\"bookingStatus\"}},\"priceConcession\":{\"data\":{\"id\": \"{{wcc_price_concession_id}}\",\"type\":\"priceConcession\"}}}},\"included\":[{\"type\":\"BookingPackage\",\"id\":\"-1\",\"attributes\":{\"name\":\"Business\",\"priceTypeId\":1,\"quantity\":1,\"attendees\":1,\"startDate\":\"2027-12-27T00:00:00\",\"endDate\":\"2027-12-27T23:59:00\",\"singleDayPackage\":true,\"sequence\":1},\"relationships\":{\"package\":{\"data\":{\"id\": \"{{wcc_complex_package_id}}\",\"type\":\"PrivatePackage\"}},\"bookingItems\":{\"data\":[{\"id\":\"-1\",\"type\":\"PrivateBookingGeneralAdmissionItem\"}]}}},{\"type\":\"PrivateBookingGeneralAdmissionItem\",\"id\":\"-1\",\"attributes\":{\"name\":\"Load Test 24/04/2026\",\"startTime\":\"2027-12-27T00:00:00\",\"endTime\":\"2027-12-27T23:59:00\",\"itemTypeId\":1,\"recurrent\":true,\"quantity\":1,\"itineraryItem\":false,\"upsell\":true},\"relationships\":{\"item\":{\"data\":{\"id\": \"{{wcc_general_admission_item_id}}\",\"type\":\"generalAdmissionItem\"}},\"allocations\":{\"data\":[{\"id\":\"-1\",\"type\":\"Allocation\"}]},\"recurrenceOption\":{\"data\":{\"id\":\"-1\",\"type\":\"RecurrenceOption\"}}}},{\"type\":\"RecurrenceOption\",\"id\":\"-1\",\"attributes\":{\"startTime\":\"2027-12-27T00:00:00\",\"endTime\":\"2027-12-27T23:59:00\",\"excludeDates\":[],\"recurrenceOptionId\":1,\"recurrenceStartDate\":\"2027-12-27T00:00:00\",\"recurrenceEndAfter\":5,\"occurrences\":1,\"assets\":\"1476\"}},{\"type\":\"Allocation\",\"id\":\"-1\",\"attributes\":{\"Preliminary\":0,\"Reserved\":1},\"relationships\":{\"timeslot\":{\"data\":{\"id\":\"-1\",\"type\":\"PrivateEventFacilityTimeslot\"}}}},{\"type\":\"PrivateEventFacilityTimeslot\",\"id\":\"-1\",\"attributes\":{\"startTime\":\"2027-12-27T00:00:00\",\"endTime\":\"2027-12-27T23:59:00\"},\"relationships\":{\"asset\":{\"data\":{\"id\": \"{{wcc_complex_asset_id}}\",\"type\":\"facility\"}},\"eventConfiguration\":{\"data\":{\"id\": \"{{wcc_complex_event_configuration_id}}\",\"type\":\"EventConfiguration\"}}}}]}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/v4.1/bookings",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "",
+                "api",
+                "v4.1",
+                "bookings"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  const id = json && json.data && json.data.id;",
+                  "  saveVar(\"wcc_complex_booking_id\", id);",
+                  "  pm.test(\"Saved complex booking id\", function () { pm.expect(id).to.be.ok; });",
+                  "} else {",
+                  "  pm.test(\"Create complex booking failed\", function () { pm.expect.fail(\"status \" + pm.response.code); });",
+                  "}"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add CLient",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"booking\",\r\n        \"attributes\": {\r\n            \"queueFlow\": false\r\n        },\r\n        \"relationships\": {\r\n            \"contact\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_shared_contact_id}}\",\r\n                    \"type\": \"contact\"\r\n                }\r\n            },\r\n            \"InvoiceContact\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_shared_contact_id}}\",\r\n                    \"type\": \"contact\"\r\n                }\r\n            }\r\n        },\r\n        \"id\": \"{{wcc_complex_booking_id}}\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_complex_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_complex_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"booking\",\r\n        \"attributes\": {\r\n            \"expiryDate\": null,\r\n            \"temporary\": false,\r\n            \"queueFlow\": false\r\n        },\r\n        \"relationships\": {\r\n            \"bookingStatus\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_simple_confirm_status_id}}\",\r\n                    \"type\": \"bookingStatus\"\r\n                }\r\n            }\r\n        },\r\n        \"id\": \"{{wcc_complex_booking_id}}\"\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_complex_booking_id}}?include=Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_complex_booking_id}}"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "Client,Salesperson,Bookingpackages,BookingItems,Contact,CommunicationMethods,Bookingstatus,invoiceAddress,deliveryAddress,mailingAddress,cancellationPolicy,paymentTerm,deliveryMethod,bondActivity,BookingUserDefinedFields,BookingQuestionnaires,referrerClient,referrerContact,address,priceConcession,BookingDetailStatus,package,packageBusinessArea,UserDefinedFields,AttendeeCaptureProfile,emailProfile,BookingMarketingMediums,venue,asset,FulfilmentStatus"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invoice Create",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"Invoice\",\r\n        \"id\": \"-1\",\r\n        \"attributes\": {},\r\n        \"relationships\": {\r\n            \"invoiceLines\": {\r\n                \"data\": [\r\n                    {\r\n                        \"tid\": \"-1\",\r\n                        \"type\": \"invoiceItem\"\r\n                    },\r\n                    {\r\n                        \"tid\": \"-2\",\r\n                        \"type\": \"invoiceItem\"\r\n                    },\r\n                    {\r\n                        \"tid\": \"-3\",\r\n                        \"type\": \"invoiceItem\"\r\n                    },\r\n                    {\r\n                        \"tid\": \"-4\",\r\n                        \"type\": \"invoiceItem\"\r\n                    },\r\n                    {\r\n                        \"tid\": \"-5\",\r\n                        \"type\": \"invoiceItem\"\r\n                    }\r\n                ]\r\n            },\r\n            \"Contact\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_shared_contact_id}}\",\r\n                    \"type\": \"contact\"\r\n                }\r\n            },\r\n            \"Address\": {\r\n                \"data\": {\r\n                    \"id\": \"-1\",\r\n                    \"type\": \"address\"\r\n                }\r\n            }\r\n        }\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"address\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"Id\": \"46147\",\r\n                \"address1\": \"22 Sylvan Way\",\r\n                \"address2\": \"\",\r\n                \"address3\": \"\",\r\n                \"city\": \"Parsippany, NJ 07054\",\r\n                \"countryID\": 14,\r\n                \"country\": \"Australia\",\r\n                \"county\": \"\",\r\n                \"stateCode\": \"\",\r\n                \"postCode\": \"679000\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"invoiceItem\",\r\n            \"id\": \"-5\",\r\n            \"tid\": \"-5\",\r\n            \"attributes\": {},\r\n            \"relationships\": {\r\n                \"bookingItem\": {\r\n                    \"data\": {\r\n                        \"tid\": \"-5\",\r\n                        \"type\": \"bookingItem\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"bookingItem\",\r\n            \"id\": \"-5\",\r\n            \"tid\": \"-5\",\r\n            \"attributes\": {\r\n                \"id\": \"264370\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"invoiceItem\",\r\n            \"id\": \"-4\",\r\n            \"tid\": \"-4\",\r\n            \"attributes\": {},\r\n            \"relationships\": {\r\n                \"bookingItem\": {\r\n                    \"data\": {\r\n                        \"tid\": \"-4\",\r\n                        \"type\": \"bookingItem\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"bookingItem\",\r\n            \"id\": \"-4\",\r\n            \"tid\": \"-4\",\r\n            \"attributes\": {\r\n                \"id\": \"264369\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"invoiceItem\",\r\n            \"id\": \"-3\",\r\n            \"tid\": \"-3\",\r\n            \"attributes\": {},\r\n            \"relationships\": {\r\n                \"bookingItem\": {\r\n                    \"data\": {\r\n                        \"tid\": \"-3\",\r\n                        \"type\": \"bookingItem\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"bookingItem\",\r\n            \"id\": \"-3\",\r\n            \"tid\": \"-3\",\r\n            \"attributes\": {\r\n                \"id\": \"264368\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"invoiceItem\",\r\n            \"id\": \"-2\",\r\n            \"tid\": \"-2\",\r\n            \"attributes\": {},\r\n            \"relationships\": {\r\n                \"bookingItem\": {\r\n                    \"data\": {\r\n                        \"tid\": \"-2\",\r\n                        \"type\": \"bookingItem\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"bookingItem\",\r\n            \"id\": \"-2\",\r\n            \"tid\": \"-2\",\r\n            \"attributes\": {\r\n                \"id\": \"264367\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"invoiceItem\",\r\n            \"id\": \"-1\",\r\n            \"tid\": \"-1\",\r\n            \"attributes\": {},\r\n            \"relationships\": {\r\n                \"bookingItem\": {\r\n                    \"data\": {\r\n                        \"tid\": \"-1\",\r\n                        \"type\": \"bookingItem\"\r\n                    }\r\n                }\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"bookingItem\",\r\n            \"id\": \"-1\",\r\n            \"tid\": \"-1\",\r\n            \"attributes\": {\r\n                \"id\": \"264366\"\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_complex_booking_id}}/invoices",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_complex_booking_id}}",
+                "invoices"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const _isLoadRun = pm.environment.get(\"isLoadRun\");",
+                  "function saveVar(key, value) {",
+                  "  if (value === undefined || value === null || value === \"\") return;",
+                  "  const s = String(value);",
+                  "  pm.variables.set(key, s);",
+                  "  if (_isLoadRun !== \"true\") {",
+                  "    pm.environment.set(key, s);",
+                  "    console.log(key + \":\", s);",
+                  "  }",
+                  "}",
+                  "function safeJsonParse(text) {",
+                  "  try { return JSON.parse(text); } catch (e) { return null; }",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "  const json = safeJsonParse(pm.response.text());",
+                  "  const invId = json && json.data && json.data.id;",
+                  "  if (invId) saveVar(\"wcc_complex_invoice_id\", invId);",
+                  "  pm.test(\"Saved complex invoice id\", function () { pm.expect(invId).to.be.ok; });",
+                  "} else {",
+                  "  pm.test(\"Complex Invoice Create failed\", function () { pm.expect.fail(\"status \" + pm.response.code); });",
+                  "}"
+                ],
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"creditCardReceipt\",\r\n        \"attributes\": {\r\n            \"paidAmount\": 27720,\r\n            \"allocatedAmount\": 27720,\r\n            \"currencyRate\": 1,\r\n            \"paymentNote\": \"Test Note\",\r\n            \"holderName\": \"Tharsha\",\r\n            \"creditCardTypeID\": \"1\",\r\n            \"last4Digits\": \"1234\",\r\n            \"authorisationCode\": \"123\"\r\n        },\r\n        \"relationships\": {\r\n            \"booking\": {\r\n                \"data\": {\r\n                    \"id\": \"{{wcc_complex_booking_id}}\",\r\n                    \"type\": \"booking\"\r\n                }\r\n            },\r\n            \"currency\": {\r\n                \"data\": {\r\n                    \"id\": \"7\",\r\n                    \"type\": \"currency\"\r\n                }\r\n            },\r\n            \"user\": {\r\n                \"data\": {\r\n                    \"id\": \"2\",\r\n                    \"type\": \"user\"\r\n                }\r\n            },\r\n            \"invoice\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"{{wcc_complex_invoice_id}}\",\r\n                        \"type\": \"invoice\"\r\n                    }\r\n                ]\r\n            },\r\n            \"site\": {\r\n                \"data\": {\r\n                    \"type\": \"site\"\r\n                }\r\n            }\r\n        }\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/payments",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Booking Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"data\":{\"type\":\"note\",\"attributes\":{\"entityType\":\"Booking\",\"entityTypeID\":10,\"noteType\":\"General\",\"noteTypeId\":1,\"html\":\"<div style=\\\"font-size: 16px;\\\"><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 13px; background-color: transparent; color: rgb(33, 33, 33); font-weight: 600 !important;\\\">DIETARY REQUIREMENTS:</span></div></div><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 16px; background-color: transparent;\\\"><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">46 x Vegetarian&nbsp;</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">18 x Halal</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">12 x Gluten Free</span></font></div><div style=\\\"font-size: 16px;\\\"><span style=\\\"font-size: 13px; color: rgb(33, 33, 33); background-color: transparent;\\\">11 x Vegan</span></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">5 x No Beef or Pork</span></font></div><div style=\\\"font-size: 16px;\\\"><font color=\\\"#212121\\\"><span style=\\\"font-size: 13px;\\\">3 x No Beef</span></font></div><div style=\\\"font-size: 16px;\\\"><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Allergic to cinnamon (Melanie Zammit)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Allergic to soy and cashews (Nikki Outred)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x ANAPHYLAXIS to: Kiwi, tree nuts, walnuts, pine nuts, peanuts (Kate Goodwin)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Dairy free (Trudy Price)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Fructose Intolerant- no garlic, onion or any sauces etc (Briony Smith)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Gluten Free and NO nuts (Mal Saker)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No whole eggs. Eggs are acceptable only as an ingredient in baked goods (Annah&nbsp; Chikukwa)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No avocado/banana (Mel Bragg)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No raw onion (Angela Dalziel)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No seafood (Kelly Waye)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No whole nuts and seeds (Jane Coyle)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Cold/ Raw Meats please – Pregnant (Sandra Tavic)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Dairy, No Meat (does eat egg and honey) (Jordan Fay)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x No Egg (Parul Aggarwal)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Pescatarian (Chandima Bandara)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian, no egg (Jaya Chandla)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian only on Mondays and Tuesdays (Sanju Ratnam)<o:p></o:p></p><p class=\\\"MsoNormal\\\" style=\\\"font-size: 13px;\\\">1 x Vegetarian or just chicken (no other meat) (Abhilasha Mishra)</p></div></span></div>\",\"plainText\":\"DIETARY REQUIREMENTS:46 x Vegetarian 18 x Halal12 x Gluten Free11 x Vegan5 x No Beef or Pork3 x No Beef1 x Allergic to cinnamon (Melanie Zammit)1 x Allergic to soy and cashews (Nikki Outred)1 x ANAPHYLAXIS to: Kiwi, tree nuts, walnuts, pine nuts, peanuts (Kate Goodwin)1 x Dairy free (Trudy Price)1 x Fructose Intolerant- no garlic, onion or any sauces etc (Briony Smith)1 x Gluten Free and NO nuts (Mal Saker)1 x No whole eggs. Eggs are acceptable only as an ingredient in baked goods (Annah  Chikukwa)1 x No avocado/banana (Mel Bragg)1 x No raw onion (Angela Dalziel)1 x No seafood (Kelly Waye)1 x No whole nuts and seeds (Jane Coyle)1 x No Cold/ Raw Meats please – Pregnant (Sandra Tavic)1 x No Dairy, No Meat (does eat egg and honey) (Jordan Fay)1 x No Egg (Parul Aggarwal)1 x Pescatarian (Chandima Bandara)1 x Vegetarian, no egg (Jaya Chandla)1 x Vegetarian only on Mondays and Tuesdays (Sanju Ratnam)1 x Vegetarian or just chicken (no other meat) (Abhilasha Mishra)\"}}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api/V4.1/bookings/{{wcc_complex_booking_id}}/notes",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "V4.1",
+                "bookings",
+                "{{wcc_complex_booking_id}}",
+                "notes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Booking Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "accept",
+                "value": "application/json, text/plain, */*"
+              },
+              {
+                "key": "accept-language",
+                "value": "en-US,en;q=0.9"
+              },
+              {
+                "key": "cache-control",
+                "value": "no-cache"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              },
+              {
+                "key": "language",
+                "value": "en"
+              },
+              {
+                "key": "origin",
+                "value": "https://wcc-uat.optimo.training"
+              },
+              {
+                "key": "pragma",
+                "value": "no-cache"
+              },
+              {
+                "key": "priority",
+                "value": "u=1, i"
+              },
+              {
+                "key": "referer",
+                "value": "https://wcc-uat.optimo.training/bookingmanager/"
+              },
+              {
+                "key": "sec-ch-ua",
+                "value": "\"Google Chrome\";v=\"147\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"147\""
+              },
+              {
+                "key": "sec-ch-ua-mobile",
+                "value": "?0"
+              },
+              {
+                "key": "sec-ch-ua-platform",
+                "value": "\"Windows\""
+              },
+              {
+                "key": "sec-fetch-dest",
+                "value": "empty"
+              },
+              {
+                "key": "sec-fetch-mode",
+                "value": "cors"
+              },
+              {
+                "key": "sec-fetch-site",
+                "value": "same-origin"
+              },
+              {
+                "key": "token",
+                "value": "{{token}}"
+              },
+              {
+                "key": "user-agent",
+                "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+              },
+              {
+                "key": "Cookie",
+                "value": "",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"data\": {\r\n        \"type\": \"bookingTask\",\r\n        \"id\": \"-1\",\r\n        \"attributes\": {\r\n            \"reference\": \"BP{{wcc_complex_booking_id}}\",\r\n            \"taskType\": \"Booking\",\r\n            \"taskTypeId\": 1,\r\n            \"isActive\": true,\r\n            \"dueDate\": \"2026-04-30T14:49:00\",\r\n            \"taskActiveScenarioId\": \"1\",\r\n            \"periodId\": 9,\r\n            \"dateTypeId\": 3,\r\n            \"durationTypeId\": 1,\r\n            \"noOfDays\": 605,\r\n            \"setSpecificTime\": true,\r\n            \"isAutoDueDate\": true,\r\n            \"specificTime\": \"2026-04-30T14:49:00\",\r\n            \"reminderDate\": \"\",\r\n            \"sendReminderForAssignee\": false,\r\n            \"name\": \"Task A\",\r\n            \"date\": \"2026-04-26T14:49:38\",\r\n            \"note\": \"\"\r\n        },\r\n        \"relationships\": {\r\n            \"taskNotifications\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-2\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-3\",\r\n                        \"type\": \"taskNotification\"\r\n                    },\r\n                    {\r\n                        \"id\": \"-4\",\r\n                        \"type\": \"taskNotification\"\r\n                    }\r\n                ]\r\n            },\r\n            \"taskAutoCancellation\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"-1\",\r\n                        \"type\": \"taskAutoCancel\"\r\n                    }\r\n                ]\r\n            },\r\n            \"fromUser\": {\r\n                \"data\": {\r\n                    \"id\": \"2\",\r\n                    \"type\": \"user\"\r\n                }\r\n            },\r\n            \"assignedUserGroups\": {\r\n                \"data\": [\r\n                    {\r\n                        \"id\": \"37\",\r\n                        \"type\": \"group\"\r\n                    }\r\n                ]\r\n            }\r\n        }\r\n    },\r\n    \"included\": [\r\n        {\r\n            \"type\": \"user\",\r\n            \"id\": \"2\",\r\n            \"attributes\": {\r\n                \"firstName\": \"Optimo\",\r\n                \"lastName\": \"User\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskAutoCancel\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-4\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 3,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-3\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 3,\r\n                \"notificationType\": 2,\r\n                \"notificationTypeID\": 2,\r\n                \"templateId\": \"39\"\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-2\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 2,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        },\r\n        {\r\n            \"type\": \"taskNotification\",\r\n            \"id\": \"-1\",\r\n            \"attributes\": {\r\n                \"scenarioId\": 1,\r\n                \"notificationType\": 1,\r\n                \"notificationTypeID\": 1\r\n            }\r\n        }\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_Generic}}/api//V4.2/tasks",
+              "protocol": "https",
+              "host": [
+                "wcc-uat",
+                "optimo",
+                "training"
+              ],
+              "path": [
+                "restapi",
+                "api",
+                "",
+                "V4.2",
+                "tasks"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const t = pm.variables.get(\"token\") || pm.environment.get(\"token\");",
+          "if (t) {",
+          "  pm.request.headers.remove(\"Token\");",
+          "  pm.request.headers.remove(\"token\");",
+          "  pm.request.headers.add({ key: \"Token\", value: t });",
+          "  pm.request.headers.add({ key: \"token\", value: t });",
+          "}"
+        ],
+        "packages": {},
+        "requests": {}
+      }
+    }
+  ]
+}

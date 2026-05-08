@@ -1,0 +1,30 @@
+{
+  "name": "optimo-k6-loadtest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "LA28/run-load-test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "smoke": "node LA28/run-load-test.js smoke",
+    "peak": "node LA28/run-load-test.js peak",
+    "peak20": "node LA28/run-load-test.js peak20",
+    "peak20_10m": "node LA28/run-load-test.js peak20_10m",
+    "peak200": "node LA28/run-load-test.js peak200",
+    "peak500": "node LA28/run-load-test.js peak500_10m",
+    "peak500:constant": "node LA28/run-load-test.js peak500_constant_10m",
+    "smoke:wcc": "node wcc/run-wcc-load-test.js smoke",
+    "peak50:wcc": "node wcc/run-wcc-load-test.js peak50_wave_10m",
+    "peak50:const:wcc": "node wcc/run-wcc-load-test.js peak50_const_10m",
+    "sanity-load:wcc": "node wcc/run-wcc-load-test.js load_sanity",
+    "extract-errors": "node extract-error-bookings.js LA28/k6-run.log",
+    "extract-errors:wcc": "node extract-error-bookings.js wcc/k6-run.log",
+    "extract-failures": "node extract-failures.js LA28/k6-run.log",
+    "extract-failures:wcc": "node extract-failures.js wcc/k6-run.log",
+    "cancel-bookings:wcc": "node wcc/cancel-bookings.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {}
+}
