@@ -40,11 +40,13 @@ export function bookingSelect(token, bookingId) {
 
 export function packageSelect(token) {
   const envIds = (__ENV.PACKAGE_IDS || "").split(",").map((x) => x.trim()).filter(Boolean);
-  // const ids = envIds.length ? envIds : [4075, 4079, 4080, 4081, 4082, 4083, 4084, 4085];
-  // const ids = envIds.length ? envIds : [3016];uat
-  // const ids = envIds.length ? envIds : [4129,4130,4132,4133,4134,4135,4136,4137,4138,4139];
+  // const ids = envIds.length ? envIds : [5280,5281,5282,5283,5284,5285,5286,5287,5288,5289];//uat 
+  // const ids = envIds.length ? envIds : [3016];//UAT
+   const ids = envIds.length ? envIds : [4130,4129,4128,4127,4126,4125,4124,4123,4122,4121];//optimodevv5
+  // const ids = envIds.length ? envIds : [4124];//optimodevv5
+  // const ids = envIds.length ? envIds : [7415,7414,7413,7412,7411,7410,7409,7408,7407,7406];//play
   // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
-  const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
+  // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
   const selectedId = ids[Math.floor(Math.random() * ids.length)];
   const res = http.get(`${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`, getHeaders(token));
   validate(res, "Package Select", { packageId: selectedId });
@@ -433,29 +435,18 @@ export function findPriorityAccessBooking(token, email) {
   return row?.id || null;
 }
 
-export function updateBookingIsPaUserDefinedFieldValue(token, bookingId) {
+export function updateBookingPoReference(token, bookingId) {
+  const poReference = __ENV.PO_REFERENCE || `LT-Optimo-${bookingId}-${__VU}-${__ITER}`;
   const payload = {
     data: {
-      relationships: {
-        BookingUserDefinedFields: { data: [{ id: 51, type: "BookingUserDefinedField" }] },
-      },
+      type: "booking",
+      attributes: { poReference },
+      relationships: {},
       id: bookingId,
-      type: "Booking",
     },
-    included: [
-      {
-        relationships: {
-          UserDefinedField: { data: { id: 51, type: "UserDefinedField" } },
-          UserDefinedFieldValue: { data: { id: 131, type: "UserDefinedFieldValue" } },
-        },
-        attributes: { Value: "isPA" },
-        id: 51,
-        type: "BookingUserDefinedField",
-      },
-    ],
   };
   const res = http.patch(`${BASE_URL}/api/V4.1/bookings/${bookingId}`, JSON.stringify(payload), getHeaders(token));
-  validate(res, "Update Booking IsPA", { bookingId }, { requestBody: payload });
+  validate(res, "Update Booking PO Reference", { bookingId }, { requestBody: payload });
   return true;
 }
 

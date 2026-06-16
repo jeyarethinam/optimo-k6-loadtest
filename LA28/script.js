@@ -32,6 +32,8 @@ import { retry, UNAUTHORIZED_MSG, logErrorReport, logFailedRequest } from "../sh
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
 const mode = __ENV.TEST_MODE || "smoke";
+/** Set to "1" to log in inside each VU (old behavior). Default: one login in setup(), token shared by all VUs. */
+const PER_VU_LOGIN = __ENV.PER_VU_LOGIN === "1";
 const environmentName = __ENV.ENV_NAME || __ENV.ENV || "N/A";
 const RUN_STARTED_AT = new Date();
 const ENABLE_RETRIES = true;
@@ -78,12 +80,15 @@ function thinkTime() {
 
 function getModeOptions(testMode) {
   if (testMode === "peak200") return loadProfile.peak200;
+  if (testMode === "peak300") return loadProfile.peak300;
+  if (testMode === "peak400") return loadProfile.peak400;
   if (testMode === "peak") return loadProfile.peak;
   if (testMode === "peak100_sustained") return loadProfile.peak100_sustained;
   if (testMode === "peak100_10m") return loadProfile.peak100_10m;
   if (testMode === "peak100_constant_10m") return loadProfile.peak100_constant_10m;
   if (testMode === "peak500_10m") return loadProfile.peak500_10m;
   if (testMode === "peak500_constant_10m") return loadProfile.peak500_constant_10m;
+  if (testMode === "peak50_5m") return loadProfile.peak50_5m;
   if (testMode === "peak20_10m") return loadProfile.peak20_10m;
   return loadProfile.smoke;
 }
@@ -109,6 +114,12 @@ for (const step of flowStepOrder) {
   options.thresholds[`endpoint_requests${selector}`] = ["count>=0"];
   options.thresholds[`endpoint_duration${selector}`] = ["avg>=0"];
   options.thresholds[`endpoint_failures${selector}`] = ["count>=0"];
+}
+
+export function setup() {
+  if (PER_VU_LOGIN) return { perVuLogin: true };
+  const token = ENABLE_RETRIES ? retry(() => login(), { attempts: 3, delayMs: 1000 }) : login();
+  return { perVuLogin: false, token };
 }
 
 function readMetricValue(data, metricName, field, fallback = 0) {
@@ -642,9 +653,10 @@ function logUnhandledFlowError(error, ctx = {}) {
   });
 }
 
-export default function () {
+export default function (setupData) {
   let authRetries = 0;
   let done = false;
+  const sharedToken = setupData && !setupData.perVuLogin && setupData.token ? setupData.token : null;
   const ctx = {
     contactId: __ENV.CONTACT_ID || null,
     contactEmail: __ENV.CONTACT_EMAIL || null,
@@ -652,9 +664,13 @@ export default function () {
 
   while (!done) {
     try {
-      group("001 Login", () => {
-        ctx.token = track("Login", () => (ENABLE_RETRIES ? retry(() => login(), { attempts: 3, delayMs: 1000 }) : login()));
-      });
+      if (sharedToken) {
+        ctx.token = sharedToken;
+      } else {
+        group("001 Login", () => {
+          ctx.token = track("Login", () => (ENABLE_RETRIES ? retry(() => login(), { attempts: 3, delayMs: 1000 }) : login()));
+        });
+      }
 
       group("002 ClientCategory", () => { ctx.clientCategoryId = track("ClientCategory", () => clientCategory(ctx.token)); });
       group("003 ClientType", () => { ctx.clientTypeId = track("ClientType", () => clientType(ctx.token)); });

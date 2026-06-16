@@ -84,6 +84,16 @@ export const loadProfile = {
     ]
   },
 
+  // Peak: 50 VUs, 5 min total (ramp + steady + ramp down)
+  // 1m ramp up to 50 → 3m steady at 50 → 1m ramp down
+  peak50_5m: {
+    stages: [
+      { duration: "1m", target: 50 },
+      { duration: "3m", target: 50 },
+      { duration: "1m", target: 0 }
+    ]
+  },
+
   // 200 VU peak – high load; expect many requests and some failures (timeouts, 5xx, rate limits)
   peak200: {
     stages: [
@@ -92,6 +102,28 @@ export const loadProfile = {
       { duration: "2m", target: 200 },
       { duration: "2m", target: 40 },
       { duration: "2m", target: 40 }
+    ]
+  },
+
+  // 300 VU peak – same shape as peak200 (20% base, 2m stages, 10m total)
+  peak300: {
+    stages: [
+      { duration: "2m", target: 60 },
+      { duration: "2m", target: 300 },
+      { duration: "2m", target: 300 },
+      { duration: "2m", target: 60 },
+      { duration: "2m", target: 60 }
+    ]
+  },
+
+  // 400 VU peak – same shape as peak300 (20% base, 2m stages, 10m total)
+  peak400: {
+    stages: [
+      { duration: "2m", target: 80 },
+      { duration: "2m", target: 400 },
+      { duration: "2m", target: 400 },
+      { duration: "2m", target: 80 },
+      { duration: "2m", target: 80 }
     ]
   }
 };

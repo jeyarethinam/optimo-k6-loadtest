@@ -1,0 +1,582 @@
+{
+  "info": {
+    "_postman_id": "la28-optimo-k6-loadtest",
+    "name": "LA28 Optimo Load Test API",
+    "description": "All endpoints used by the LA28 k6 load test (`LA28/endpoints/*`).\n\n**Setup:** Run **Login** first. The test script saves `token` to collection variables. Use `{{base_url}}` to switch environments.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://optimodevv5-apis-a2a8g7ehdma3h0df.eastus-01.azurewebsites.net/restapi" },
+    { "key": "token", "value": "" },
+    { "key": "username", "value": "optimo" },
+    { "key": "password", "value": "12345" },
+    { "key": "contactId", "value": "" },
+    { "key": "clientId", "value": "" },
+    { "key": "bookingId", "value": "" },
+    { "key": "packageId", "value": "4130" },
+    { "key": "packageStartDate", "value": "2028-07-01T00:00:00" },
+    { "key": "packageEndDate", "value": "2028-07-31T23:59:59" },
+    { "key": "paymentTermId", "value": "19" },
+    { "key": "paymentTermDetailId", "value": "" },
+    { "key": "invoiceId", "value": "" },
+    { "key": "emailId", "value": "" },
+    { "key": "templateId", "value": "" },
+    { "key": "contactEmail", "value": "loadtest_contact_example@example.com" },
+    { "key": "salesChannelId", "value": "1" }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      { "key": "key", "value": "token", "type": "string" },
+      { "key": "value", "value": "{{token}}", "type": "string" },
+      { "key": "in", "value": "header", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const token = body?.meta?.token;",
+                  "if (token) {",
+                  "    pm.collectionVariables.set('token', token);",
+                  "    pm.test('Token received', () => pm.expect(token).to.be.a('string').and.not.empty);",
+                  "} else {",
+                  "    pm.test('Token received', () => pm.expect.fail('No token in response meta'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v4.1/users/login?fields=token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v4.1", "users", "login"],
+              "query": [{ "key": "fields", "value": "token" }]
+            },
+            "description": "Authenticate and store token in collection variable."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Client Categories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/client-categories"
+          }
+        },
+        {
+          "name": "Client Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/client-types"
+          }
+        },
+        {
+          "name": "Titles",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/titles"
+          }
+        },
+        {
+          "name": "Communication Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/communication-types"
+          }
+        },
+        {
+          "name": "Countries",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/countries"
+          }
+        },
+        {
+          "name": "Create Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.id) pm.collectionVariables.set('clientId', body.data.id);",
+                  "const contactId = body?.data?.relationships?.contacts?.data?.[0]?.id;",
+                  "if (contactId) pm.collectionVariables.set('contactId', contactId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"type\": \"CorporateClient\",\n    \"tid\": \"-1\",\n    \"attributes\": {\n      \"Active\": true,\n      \"ClientName\": \"Load Test Client\",\n      \"ClientCategoryId\": \"5\",\n      \"ClientTypeId\": \"1\",\n      \"DateRegistered\": \"2026-05-21T00:00:00.000Z\",\n      \"FirstName\": \"Load\",\n      \"LastName\": \"TestUser\"\n    },\n    \"relationships\": {\n      \"accountManager\": { \"data\": { \"id\": \"2\", \"type\": \"user\" } },\n      \"address\": { \"data\": { \"id\": \"-1\", \"type\": \"Address\" } },\n      \"communicationMethods\": {\n        \"data\": [\n          { \"id\": \"-1\", \"type\": \"CommunicationMethod\" },\n          { \"id\": \"-2\", \"type\": \"CommunicationMethod\" }\n        ]\n      },\n      \"contacts\": { \"data\": [{ \"id\": \"-1\", \"type\": \"Contact\" }] }\n    }\n  },\n  \"included\": [\n    {\n      \"type\": \"CommunicationMethod\",\n      \"id\": \"-1\",\n      \"attributes\": { \"communicationTypeID\": \"3\", \"value\": \"+380 99 601 1234\" }\n    },\n    {\n      \"type\": \"CommunicationMethod\",\n      \"id\": \"-2\",\n      \"attributes\": { \"communicationTypeID\": \"6\", \"value\": \"loadtest_client@example.com\" }\n    },\n    {\n      \"type\": \"CommunicationMethod\",\n      \"id\": \"-3\",\n      \"attributes\": { \"communicationTypeID\": \"3\", \"value\": \"+380 99 601 1234\" }\n    },\n    {\n      \"type\": \"CommunicationMethod\",\n      \"id\": \"-4\",\n      \"attributes\": { \"communicationTypeID\": \"6\", \"value\": \"{{contactEmail}}\" }\n    },\n    {\n      \"type\": \"Address\",\n      \"id\": \"-1\",\n      \"attributes\": {\n        \"city\": \"Los Angeles\",\n        \"county\": \"\",\n        \"Address1\": \"123 Test St\",\n        \"PostCode\": \"90001\",\n        \"countryId\": \"1\"\n      }\n    },\n    {\n      \"type\": \"Contact\",\n      \"id\": \"-1\",\n      \"attributes\": {\n        \"Active\": true,\n        \"DateRegistered\": \"2026-05-21T00:00:00.000Z\",\n        \"FirstName\": \"Load\",\n        \"isSameAsClientAddress\": true,\n        \"DecisionMaker\": false,\n        \"LastName\": \"TestUser\"\n      },\n      \"relationships\": {\n        \"communicationMethods\": {\n          \"data\": [\n            { \"id\": \"-3\", \"type\": \"CommunicationMethod\" },\n            { \"id\": \"-4\", \"type\": \"CommunicationMethod\" }\n          ]\n        }\n      }\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/customers/clients",
+            "description": "Update communicationTypeID and countryId from lookup endpoints before running."
+          }
+        },
+        {
+          "name": "Get Contact (communicationMethods)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/contacts/{{contactId}}?include=communicationMethods"
+          }
+        },
+        {
+          "name": "Search Contact By Email",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/V4.1/customers/contacts?filters.emailAddress={{contactEmail}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "V4.1", "customers", "contacts"],
+              "query": [{ "key": "filters.emailAddress", "value": "{{contactEmail}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get Contact (invoiceAddress)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/customers/contacts/{{contactId}}?include=invoiceAddress"
+          }
+        },
+        {
+          "name": "Update Client",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"accountManager\": { \"data\": { \"id\": \"2\", \"type\": \"user\" } },\n      \"address\": { \"data\": { \"id\": \"4561\", \"type\": \"address\" } }\n    },\n    \"attributes\": { \"ClientTypeId\": \"1\", \"ClientCategoryId\": \"5\" },\n    \"id\": \"{{clientId}}\",\n    \"type\": \"corporateClient\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/customers/client/{{clientId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.id) pm.collectionVariables.set('bookingId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"contact\": { \"data\": { \"id\": \"{{contactId}}\", \"type\": \"contact\" } },\n      \"bookingStatus\": { \"data\": { \"id\": \"81\", \"type\": \"bookingStatus\" } },\n      \"paymentTerm\": { \"data\": { \"id\": \"{{paymentTermId}}\", \"type\": \"paymentTerm\" } }\n    },\n    \"attributes\": {\n      \"salesChannelId\": {{salesChannelId}},\n      \"temporary\": true\n    },\n    \"type\": \"Booking\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings"
+          }
+        },
+        {
+          "name": "Booking Select",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}?include=bookingPackages,package"
+          }
+        },
+        {
+          "name": "Get Booking Full Details",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}?include=bookingPackages,paymentTerm,invoices,contact"
+          }
+        },
+        {
+          "name": "Get Booking Items",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}?include=bookingItems"
+          }
+        },
+        {
+          "name": "Search Booking By Email",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/V4.1/bookings?include=bookingPackages,paymentTerm,invoices,contact&filters.contactEmailAddress={{contactEmail}}&filters.bookingStatusId=81&page.size=1&page.number=1&sort=-1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "V4.1", "bookings"],
+              "query": [
+                { "key": "include", "value": "bookingPackages,paymentTerm,invoices,contact" },
+                { "key": "filters.contactEmailAddress", "value": "{{contactEmail}}" },
+                { "key": "filters.bookingStatusId", "value": "81" },
+                { "key": "page.size", "value": "1" },
+                { "key": "page.number", "value": "1" },
+                { "key": "sort", "value": "-1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find Priority Access Booking",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/V4.1/bookings?include=bookingPackages,paymentTerm,invoices,contact&filters.contactEmailAddress={{contactEmail}}&filters.bookingStatusId=81&page.size=1&page.number=1&sort=-1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "V4.1", "bookings"],
+              "query": [
+                { "key": "include", "value": "bookingPackages,paymentTerm,invoices,contact" },
+                { "key": "filters.contactEmailAddress", "value": "{{contactEmail}}" },
+                { "key": "filters.bookingStatusId", "value": "81" },
+                { "key": "page.size", "value": "1" },
+                { "key": "page.number", "value": "1" },
+                { "key": "sort", "value": "-1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Booking Status List",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/V4.1/bookings/booking-statuses?filters.bookingStatusName=confirmed&page.number=1&page.size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "V4.1", "bookings", "booking-statuses"],
+              "query": [
+                { "key": "filters.bookingStatusName", "value": "confirmed" },
+                { "key": "page.number", "value": "1" },
+                { "key": "page.size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Package",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"bookingPackages\": { \"data\": [{ \"id\": \"-1\", \"type\": \"BookingPackage\" }] }\n    },\n    \"id\": \"{{bookingId}}\",\n    \"type\": \"booking\"\n  },\n  \"included\": [\n    {\n      \"relationships\": {\n        \"Package\": { \"data\": { \"id\": \"{{packageId}}\", \"type\": \"PublicPackage\" } }\n      },\n      \"attributes\": {\n        \"StartDate\": \"{{packageStartDate}}\",\n        \"Quantity\": 1,\n        \"EndDate\": \"{{packageEndDate}}\"\n      },\n      \"id\": \"-1\",\n      \"type\": \"BookingPackage\"\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}?include=bookingPackages,paymentTerm,invoices,contact"
+          }
+        },
+        {
+          "name": "Update Booking - Add Client",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"contact\": { \"data\": { \"id\": \"{{contactId}}\", \"type\": \"contact\" } }\n    },\n    \"id\": \"{{bookingId}}\",\n    \"type\": \"booking\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Update Booking - PO Reference",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"type\": \"booking\",\n    \"attributes\": {\n      \"poReference\": \"LT-Optimo-{{bookingId}}\"\n    },\n    \"relationships\": {},\n    \"id\": \"{{bookingId}}\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Confirm Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"attributes\": { \"temporary\": false },\n    \"id\": \"{{bookingId}}\",\n    \"type\": \"booking\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Create Invoice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.id) pm.collectionVariables.set('invoiceId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"type\": \"invoice\",\n    \"id\": \"-1\",\n    \"attributes\": { \"IsSeparateInvoice\": true, \"IncludeBond\": 0 },\n    \"relationships\": {\n      \"PaymentTermSteps\": {\n        \"data\": [{ \"id\": \"-1\", \"type\": \"PaymentTermDetail\" }]\n      }\n    }\n  },\n  \"included\": [\n    {\n      \"type\": \"PaymentTermDetail\",\n      \"id\": \"-1\",\n      \"attributes\": { \"Id\": \"{{paymentTermDetailId}}\" }\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/invoices",
+            "description": "Set paymentTermDetailId from Get Booking Full Details response."
+          }
+        },
+        {
+          "name": "Booking Invoices",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/invoices"
+          }
+        },
+        {
+          "name": "Get Invoice By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/invoices/{{invoiceId}}"
+          }
+        },
+        {
+          "name": "Generate Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body?.data?.id) pm.collectionVariables.set('emailId', body.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"DocumentTemplateId\": \"{{templateId}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/emails/generate"
+          }
+        },
+        {
+          "name": "Send Email",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/emails/{{emailId}}/send"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Package Select",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const included = body?.included || [];",
+                  "const sess = included.find(x => String(x?.type || '').toLowerCase() === 'packagesession');",
+                  "if (sess?.attributes?.startTime) pm.collectionVariables.set('packageStartDate', sess.attributes.startTime);",
+                  "if (sess?.attributes?.endTime) pm.collectionVariables.set('packageEndDate', sess.attributes.endTime);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/products/packages/{{packageId}}?include=PublicPackage.PackageSessions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "Email Template List",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const templates = body?.data || [];",
+                  "const doc = templates.find(t => t?.attributes?.name === 'Contract Email Template - B2B');",
+                  "if (doc?.id) pm.collectionVariables.set('templateId', doc.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/api/V4.1/documents/document-templates?filters.searchText=Email&filters.documentTypeID=7&page.number=1&page.size=1000",
+              "host": ["{{base_url}}"],
+              "path": ["api", "V4.1", "documents", "document-templates"],
+              "query": [
+                { "key": "filters.searchText", "value": "Email" },
+                { "key": "filters.documentTypeID", "value": "7" },
+                { "key": "page.number", "value": "1" },
+                { "key": "page.size", "value": "1000" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Credit Card Types",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/payments/credit-card-types"
+          }
+        },
+        {
+          "name": "Payment Select",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/payments"
+          }
+        },
+        {
+          "name": "Payment Schedule",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": "{{base_url}}/api/V4.1/bookings/{{bookingId}}/payment-schedule"
+          }
+        },
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"booking\": { \"data\": { \"id\": \"{{bookingId}}\", \"type\": \"booking\" } },\n      \"currency\": { \"data\": { \"id\": \"2\", \"type\": \"currency\" } },\n      \"invoice\": { \"data\": [{ \"id\": \"{{invoiceId}}\", \"type\": \"invoice\" }] }\n    },\n    \"attributes\": {\n      \"allocatedAmount\": \"100.00\",\n      \"paidAmount\": \"100.00\",\n      \"currencyRate\": 1,\n      \"creditCardTypeID\": \"2\",\n      \"creditCardType\": \"Mastercard\",\n      \"transactionNumber\": \"TXN123456789\",\n      \"authorisationCode\": \"123456\",\n      \"paymentDate\": \"2026-05-21T12:00:00.000Z\",\n      \"last4Digits\": \"1111\",\n      \"paymentRef\": \"ECOM_{{bookingId}}_test\"\n    },\n    \"type\": \"creditCardReceipt\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{base_url}}/api/V4.1/payments",
+            "description": "Set allocatedAmount/paidAmount to match invoice total."
+          }
+        }
+      ]
+    }
+  ]
+}

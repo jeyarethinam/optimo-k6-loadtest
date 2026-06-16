@@ -12,6 +12,7 @@ const path = require("path");
 
 const REPO_ROOT = path.join(__dirname, "..");
 const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(REPO_ROOT, "LA28");
+const TEST_MODE = process.argv[3] || process.env.TEST_MODE || process.env.K6_TEST_MODE || "";
 const METRICS_FILE = path.join(TARGET_DIR, "metrics.json");
 const REPORT_FILES = [
   path.join(TARGET_DIR, "report.html"),
@@ -26,6 +27,16 @@ function percentile(sortedArr, p) {
   const hi = Math.ceil(idx);
   if (lo === hi) return Math.round(sortedArr[lo]);
   return Math.round(sortedArr[lo] + (idx - lo) * (sortedArr[hi] - sortedArr[lo]));
+}
+
+function minTimestamp(points) {
+  let tMin = Infinity;
+  for (const key of ["vus", "http_reqs", "http_req_duration", "http_req_failed"]) {
+    for (const { t } of points[key]) {
+      if (t < tMin) tMin = t;
+    }
+  }
+  return tMin === Infinity ? 0 : tMin;
 }
 
 function loadPoints(metricsPath) {
@@ -49,11 +60,7 @@ function loadPoints(metricsPath) {
 
 function bucketSeries(points) {
   if (!points || points.http_reqs.length === 0) return null;
-  const allT = points.vus.map((p) => p.t)
-    .concat(points.http_reqs.map((p) => p.t))
-    .concat(points.http_req_duration.map((p) => p.t))
-    .concat(points.http_req_failed.map((p) => p.t));
-  const tMin = Math.min(...allT);
+  const tMin = minTimestamp(points);
   const buckets = new Map();
 
   function bucketKey(t) {
@@ -137,13 +144,50 @@ function computeSummary(series, points) {
   const totalReqs = (points && points.http_reqs) ? points.http_reqs.length : 0;
   const totalFailed = (points && points.http_req_failed) ? points.http_req_failed.reduce((s, p) => s + p.v, 0) : 0;
   const sorted = allDurations.length ? [...allDurations].sort((a, b) => a - b) : [];
-  const minMs = sorted.length ? Math.round(Math.min(...sorted)) : 0;
-  const maxMs = sorted.length ? Math.round(Math.max(...sorted)) : 0;
+  const minMs = sorted.length ? Math.round(sorted[0]) : 0;
+  const maxMs = sorted.length ? Math.round(sorted[sorted.length - 1]) : 0;
   const avgMs = sorted.length ? Math.round(sorted.reduce((s, x) => s + x, 0) / sorted.length) : 0;
   const errPct = totalReqs > 0 ? Math.round((totalFailed / totalReqs) * 1000) / 10 : 0;
   const durationSec = series && series.tMax && series.tMin ? (series.tMax - series.tMin) / 1000 : 0;
   const durationStr = durationSec >= 60 ? (durationSec / 60).toFixed(1) + " min" : durationSec.toFixed(1) + " s";
-  return { minMs, maxMs, avgMs, errPct, totalReqs, durationStr };
+  const maxVus = series && Array.isArray(series.vusData) && series.vusData.length
+    ? series.vusData.reduce((m, x) => (typeof x === "number" && Number.isFinite(x) && x > m ? x : m), 0)
+    : 0;
+  return { minMs, maxMs, avgMs, errPct, totalReqs, durationStr, durationSec, maxVus };
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatRunStamp(d) {
+  const dt = d instanceof Date ? d : new Date(d);
+  return `${dt.getFullYear()}${pad2(dt.getMonth() + 1)}${pad2(dt.getDate())}_${pad2(dt.getHours())}${pad2(dt.getMinutes())}${pad2(dt.getSeconds())}`;
+}
+
+function safeSlug(v) {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function writeTimestampedReportCopy(targetDir, summary, mode, primaryReportPath) {
+  if (!primaryReportPath || !fs.existsSync(primaryReportPath)) return null;
+  const stamp = formatRunStamp(new Date());
+  const vu = summary && Number.isFinite(summary.maxVus) ? Math.max(0, Math.round(summary.maxVus)) : 0;
+  const dur = summary && Number.isFinite(summary.durationSec) ? Math.max(0, Math.round(summary.durationSec)) : 0;
+  const modeSlug = safeSlug(mode);
+  const parts = ["report", stamp];
+  if (modeSlug) parts.push(modeSlug);
+  if (vu) parts.push(`${vu}VU`);
+  if (dur) parts.push(`${dur}s`);
+  const fileName = parts.join("_") + ".html";
+  const outPath = path.join(targetDir, fileName);
+  fs.copyFileSync(primaryReportPath, outPath);
+  return fileName;
 }
 
 function buildChartsSection(series, summary) {
@@ -344,6 +388,11 @@ function main() {
   }
   if (updated.length > 0) {
     console.log(`Charts (VU, req/s, avg/percentiles, error %, performance indicators) added to: ${updated.join(", ")}.`);
+    const primary = path.join(TARGET_DIR, "report.html");
+    const stamped = writeTimestampedReportCopy(TARGET_DIR, summary, TEST_MODE, primary);
+    if (stamped) {
+      console.log(`Timestamped report copy created: ${stamped}`);
+    }
   } else {
     console.log("No supported report file found for chart injection.");
     process.exitCode = 1;

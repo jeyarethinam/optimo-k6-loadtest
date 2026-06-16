@@ -129,7 +129,7 @@ function teeAndRun() {
 }
 
 function runAddGraphs() {
-  const r = spawnSync("node", [path.join(REPO_ROOT, "shared", "add-graphs.js"), LA_DIR], {
+  const r = spawnSync("node", [path.join(REPO_ROOT, "shared", "add-graphs.js"), LA_DIR, mode], {
     cwd: REPO_ROOT,
     stdio: "inherit",
   });
