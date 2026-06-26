@@ -19,7 +19,7 @@ import {
   searchContactByEmail,
   searchBookingByEmail,
   findPriorityAccessBooking,
-  updateBookingIsPaUserDefinedFieldValue,
+  updateBookingPoReference,
   getBookingFullDetails,
   getBookingItems,
   getContactWithInvoiceAddress,
@@ -43,9 +43,11 @@ const THINK_TIME_MIN_S = Number(__ENV.THINK_TIME_MIN_S || "0.2");
 const THINK_TIME_MAX_S = Number(__ENV.THINK_TIME_MAX_S || "1.0");
 const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || "2000");
 const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || "4000");
+/** Skip Find Priority Access Booking (redundant — CreateBooking always runs next). Set to "0" to re-enable. */
+const SKIP_FIND_PRIORITY_ACCESS_BOOKING = (__ENV.SKIP_FIND_PRIORITY_ACCESS_BOOKING ?? "1") === "1";
 const endpointOrder = [
   "Login", "Client Category", "Client Type", "Client Title", "Communication Types", "Country", "Create Client",
-  "Get Contact", "Search Contact By Email", "Find Priority Access Booking", "Create Booking", "Update Booking IsPA",
+  "Get Contact", "Search Contact By Email", "Find Priority Access Booking", "Create Booking", "Update Booking PO Reference",
   "Search Booking By Email", "Package Select", "Add Package", "Booking Select", "Get Booking Full Details",
   "Get Contact With Invoice Address", "Update Client", "Get Booking Items", "Add Client", "Invoice Create",
   "Payment Select", "Payment Credit Card Types", "Booking Invoices", "Create Payment", "Confirm Booking",
@@ -53,7 +55,7 @@ const endpointOrder = [
 ];
 const flowStepOrder = [
   "Login", "ClientCategory", "ClientType", "ClientTitle", "CommunicationTypes", "Country", "CreateClient", "GetContact",
-  "SearchContactByEmail", "FindPriorityAccessBooking", "CreateBooking", "UpdateBookingIsPA", "SearchBookingByEmail",
+  "SearchContactByEmail", "FindPriorityAccessBooking", "CreateBooking", "UpdateBookingPoReference", "SearchBookingByEmail",
   "PackageSelect1", "PackageSelect2", "AddPackage", "BookingSelectA", "GetBookingFullDetails1", "PackageSelect3",
   "PackageSelect4", "BookingSelectB", "GetBookingFullDetails2", "SearchContactByEmailEncoded", "GetContactWithInvoiceAddress1",
   "UpdateClient", "GetBookingFullDetails3", "GetBookingItems", "GetBookingFullDetails4", "UpdateBookingWithContact", "GetBookingFullDetails5",
@@ -110,6 +112,7 @@ export const options = {
   summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)"],
 };
 for (const step of flowStepOrder) {
+  if (SKIP_FIND_PRIORITY_ACCESS_BOOKING && step === "FindPriorityAccessBooking") continue;
   const selector = `{flow_step:${step}}`;
   options.thresholds[`endpoint_requests${selector}`] = ["count>=0"];
   options.thresholds[`endpoint_duration${selector}`] = ["avg>=0"];
@@ -217,7 +220,7 @@ function getStepMeta(step) {
   if (step === "SearchContactByEmail" || step === "SearchContactByEmailEncoded") return { endpoint: "Search Contact By Email", method: "GET" };
   if (step === "FindPriorityAccessBooking") return { endpoint: "Find Priority Access Booking", method: "GET" };
   if (step === "CreateBooking") return { endpoint: "Create Booking", method: "POST" };
-  if (step === "UpdateBookingIsPA") return { endpoint: "Update Booking IsPA", method: "PATCH" };
+  if (step === "UpdateBookingPoReference") return { endpoint: "Update Booking PO Reference", method: "PATCH" };
   if (step === "SearchBookingByEmail") return { endpoint: "Search Booking By Email", method: "GET" };
   if (step === "AddPackage") return { endpoint: "Add Package", method: "PATCH" };
   if (step === "BookingSelectA" || step === "BookingSelectB") return { endpoint: "Booking Select", method: "GET" };
@@ -700,14 +703,16 @@ export default function (setupData) {
       if (!ctx.contactEmail) ctx.contactEmail = __ENV.CONTACT_EMAIL || "";
       group("009 Search Contact By Email", () => { Object.assign(ctx, track("SearchContactByEmail", () => searchContactByEmail(ctx.token, ctx.contactEmail))); });
       if (!ctx.contactId) ctx.contactId = __ENV.CONTACT_ID || "1";
-      group("010 Find Priority Access booking", () => { ctx.bookingId = track("FindPriorityAccessBooking", () => findPriorityAccessBooking(ctx.token, ctx.contactEmail)) || ctx.bookingId; });
+      if (!SKIP_FIND_PRIORITY_ACCESS_BOOKING) {
+        group("010 Find Priority Access booking", () => { ctx.bookingId = track("FindPriorityAccessBooking", () => findPriorityAccessBooking(ctx.token, ctx.contactEmail)) || ctx.bookingId; });
+      }
 
       group("011 Empty Booking create", () => {
         const out = track("CreateBooking", () => (ENABLE_RETRIES ? retry(() => createBooking(ctx.token, ctx.contactId), { attempts: 3, delayMs: 1000 }) : createBooking(ctx.token, ctx.contactId)));
         ctx.bookingId = out?.bookingId || ctx.bookingId;
         ctx.contactId = out?.contactId || ctx.contactId;
       });
-      group("012 Update Booking isPA_UserDefinedFieldValue", () => { track("UpdateBookingIsPA", () => updateBookingIsPaUserDefinedFieldValue(ctx.token, ctx.bookingId)); });
+      group("012 Update Booking PO Reference", () => { track("UpdateBookingPoReference", () => updateBookingPoReference(ctx.token, ctx.bookingId)); });
       group("013 Search Booking By Email", () => { ctx.bookingId = track("SearchBookingByEmail", () => searchBookingByEmail(ctx.token, ctx.contactEmail)) || ctx.bookingId; });
       if (!ctx.bookingId) throw new Error("booking_id correlation failed after create/search booking");
       if (__VU === 1) {
