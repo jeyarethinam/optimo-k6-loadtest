@@ -56,13 +56,13 @@ const endpointOrder = [
 const flowStepOrder = [
   "Login", "ClientCategory", "ClientType", "ClientTitle", "CommunicationTypes", "Country", "CreateClient", "GetContact",
   "SearchContactByEmail", "FindPriorityAccessBooking", "CreateBooking", "UpdateBookingPoReference", "SearchBookingByEmail",
-  "PackageSelect1", "PackageSelect2", "AddPackage", "BookingSelectA", "GetBookingFullDetails1", "PackageSelect3",
+  "PackageSelect", "AddPackage", "BookingSelectA", "GetBookingFullDetails1", "PackageSelect3",
   "PackageSelect4", "BookingSelectB", "GetBookingFullDetails2", "SearchContactByEmailEncoded", "GetContactWithInvoiceAddress1",
   "UpdateClient", "GetBookingFullDetails3", "GetBookingItems", "GetBookingFullDetails4", "UpdateBookingWithContact", "GetBookingFullDetails5",
-  "GetContactWithInvoiceAddress2", "PackageSelect5", "PackageSelect6", "PackageSelect7", "PackageSelect8", "InvoiceCreate",
+  "GetContactWithInvoiceAddress2", "PackageSelect5", "PackageSelect6", "InvoiceCreate",
   "GetContactWithInvoiceAddress3", "GetBookingFullDetails6", "GetBookingFullDetails7", "PaymentSelect", "PaymentCreditCardTypes",
   "GetBookingFullDetails8", "BookingInvoices", "CreatePayment", "ConfirmBooking", "EmailTemplate", "GenerateEmail",
-  "SendEmail", "PackageSelect9", "PackageSelect10", "GetInvoiceById"
+  "SendEmail", "GetInvoiceById"
 ];
 
 // Smoke correlation IDs to show in the generated HTML report.
@@ -721,16 +721,16 @@ export default function (setupData) {
       }
       console.log(`SMOKE_IDS bookingId=${ctx.bookingId ?? "(null)"} clientId=${ctx.rClientId ?? "(null)"} contactId=${ctx.contactId ?? "(null)"} email=${ctx.contactEmail ?? "(null)"} vu=${__VU ?? "(n/a)"} iter=${__ITER ?? "(n/a)"}`);
 
-      group("014 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect1", () => packageSelect(ctx.token))); });
-      group("015 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect2", () => packageSelect(ctx.token))); });
-      group("016 BookingsPatch- Package adding", () => {
+      group("014 Package_Select", () => { Object.assign(ctx, track("PackageSelect", () => packageSelect(ctx.token))); });
+      group("015 BookingsPatch- Package adding", () => {
         const out = track("AddPackage", () => addPackage(ctx.token, ctx.bookingId, ctx.packageId, ctx.pStartDate, ctx.pEndDate));
         ctx.paymentTermDetailId = out?.paymentTermDetailId || ctx.paymentTermDetailId;
+        ctx.packageId = out?.packageId || ctx.packageId;
       });
       group("017 Bookings-Select", () => { Object.assign(ctx, track("BookingSelectA", () => bookingSelect(ctx.token, ctx.bookingId))); });
       group("018 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails1", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
-      group("019 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect3", () => packageSelect(ctx.token))); });
-      group("020 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect4", () => packageSelect(ctx.token))); });
+      group("019 Package_Select", () => { track("PackageSelect3", () => packageSelect(ctx.token, ctx.packageId)); });
+      group("020 Package_Select", () => { track("PackageSelect4", () => packageSelect(ctx.token, ctx.packageId)); });
       group("021 Booking Select", () => { Object.assign(ctx, track("BookingSelectB", () => bookingSelect(ctx.token, ctx.bookingId))); });
       group("022 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails2", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
 
@@ -744,12 +744,10 @@ export default function (setupData) {
       group("030 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails5", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
       group("031 Get Contact With Invoice Address", () => { Object.assign(ctx, track("GetContactWithInvoiceAddress2", () => getContactWithInvoiceAddress(ctx.token, ctx.contactId))); });
 
-      group("032 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect5", () => packageSelect(ctx.token))); });
-      group("033 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect6", () => packageSelect(ctx.token))); });
-      group("034 Package_Select 3", () => { Object.assign(ctx, track("PackageSelect7", () => packageSelect(ctx.token))); });
-      group("035 Package_Select 4", () => { Object.assign(ctx, track("PackageSelect8", () => packageSelect(ctx.token))); });
+      group("032 Package_Select", () => { track("PackageSelect5", () => packageSelect(ctx.token, ctx.packageId)); });
+      group("033 Package_Select", () => { track("PackageSelect6", () => packageSelect(ctx.token, ctx.packageId)); });
 
-      group("036 InvoiceCreate", () => { ctx.invoiceId = track("InvoiceCreate", () => invoiceCreate(ctx.token, ctx.bookingId, ctx.paymentTermDetailId)); });
+      group("034 InvoiceCreate", () => { ctx.invoiceId = track("InvoiceCreate", () => invoiceCreate(ctx.token, ctx.bookingId, ctx.paymentTermDetailId)); });
       group("037 Get Contact With Invoice Address", () => { Object.assign(ctx, track("GetContactWithInvoiceAddress3", () => getContactWithInvoiceAddress(ctx.token, ctx.contactId))); });
       group("038 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails6", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
       group("039 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails7", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
@@ -771,9 +769,7 @@ export default function (setupData) {
       if (__ENV.ECOM_BOOKING_CONFIRMATION_EMAIL_TEMPLATE) ctx.templateId = __ENV.ECOM_BOOKING_CONFIRMATION_EMAIL_TEMPLATE;
       group("047 BookingEmailGenerate", () => { ctx.emailId = track("GenerateEmail", () => generateEmail(ctx.token, ctx.bookingId, ctx.templateId)?.emailId); });
       group("048 BookingEmailSend", () => { track("SendEmail", () => sendEmail(ctx.token, ctx.bookingId, ctx.emailId)); });
-      group("049 Package_Select 1", () => { track("PackageSelect9", () => packageSelect(ctx.token)); });
-      group("050 Package_Select 2", () => { track("PackageSelect10", () => packageSelect(ctx.token)); });
-      group("051 Get Invoice By ID", () => { track("GetInvoiceById", () => getInvoiceById(ctx.token, ctx.invoiceId)); });
+      group("049 Get Invoice By ID", () => { track("GetInvoiceById", () => getInvoiceById(ctx.token, ctx.invoiceId)); });
 
       done = true;
     } catch (e) {

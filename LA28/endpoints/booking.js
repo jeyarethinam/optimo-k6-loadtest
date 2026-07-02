@@ -38,7 +38,7 @@ export function bookingSelect(token, bookingId) {
   };
 }
 
-export function packageSelect(token) {
+export function packageSelect(token, packageId = null) {
   const envIds = (__ENV.PACKAGE_IDS || "").split(",").map((x) => x.trim()).filter(Boolean);
   // const ids = envIds.length ? envIds : [5280,5281,5282,5283,5284,5285,5286,5287,5288,5289];//uat 
   // const ids = envIds.length ? envIds : [3016];//UAT
@@ -47,7 +47,9 @@ export function packageSelect(token) {
   // const ids = envIds.length ? envIds : [7415,7414,7413,7412,7411,7410,7409,7408,7407,7406];//play
   // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
   // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
-  const selectedId = ids[Math.floor(Math.random() * ids.length)];
+  const selectedId = packageId != null && packageId !== ""
+    ? String(packageId)
+    : String(ids[Math.floor(Math.random() * ids.length)]);
   const res = http.get(`${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`, getHeaders(token));
   validate(res, "Package Select", { packageId: selectedId });
   const body = res.json() || {};
