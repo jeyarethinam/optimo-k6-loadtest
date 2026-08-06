@@ -5,9 +5,23 @@
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const { loadProjectEnv } = require("../shared/load-env.js");
 
 const WCC_DIR = __dirname;
 const REPO_ROOT = path.join(WCC_DIR, "..");
+loadProjectEnv(REPO_ROOT, WCC_DIR);
+
+const hasWccLogin =
+  (process.env.WCC_LOGIN_USER && process.env.WCC_LOGIN_PASSWORD) ||
+  (process.env.WCC_LOAD_LOGIN_USER && process.env.WCC_LOAD_LOGIN_PASSWORD);
+if (!hasWccLogin) {
+  process.stderr.write(
+    "Missing WCC login env (need WCC_LOGIN_USER + WCC_LOGIN_PASSWORD, or WCC_LOAD_LOGIN_*).\n" +
+      "Copy .env.example to .env and fill in WCC credentials, then retry.\n"
+  );
+  process.exit(1);
+}
+
 const LOG_FILE = path.join(WCC_DIR, "k6-run.log");
 const RUN_SEQ_FILE = path.join(WCC_DIR, ".wcc-run-seq.json");
 const mode = process.argv[2] || process.env.TEST_MODE || "smoke";

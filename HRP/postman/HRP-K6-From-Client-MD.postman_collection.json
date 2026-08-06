@@ -1,0 +1,593 @@
+﻿{
+    "info":  {
+                 "_postman_id":  "6a8a84a9-1890-4d37-9fcf-c2ac13b52cc6",
+                 "name":  "HRP K6 Load Test - From Client MD (NEW)",
+                 "description":  "NEW collection from client optimo_requests.md for HRP K6 load testing.\nExisting la28-hrm / HRP-Automation was NOT modified.\n\nFlow: Login -\u003e List -\u003e Create -\u003e Get -\u003e PATCH add 50 packages -\u003e Submit -\u003e Unsubmit -\u003e Cancel\n\n- Create captures bookingId into collection variable\n- Add Packages body includes FULL 50 packages (exact first 4 from MD; 5-50 same structure)\n- Client unchanged: CO00007168, contact 7321, event LT-OL-HRP-K6-Test",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "item":  [
+                 {
+                     "name":  "01 Auth",
+                     "item":  [
+                                  {
+                                      "name":  "Login",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/users/login?fields=token",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "users",
+                                                                               "login"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "fields",
+                                                                                    "value":  "token"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "Login for token header",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Login returns token\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(200);",
+                                                                                    "    const json = pm.response.json();",
+                                                                                    "    const token = json?.meta?.token || json?.data?.attributes?.token || json?.token;",
+                                                                                    "    pm.expect(token, \u0027token\u0027).to.be.a(\u0027string\u0027).and.not.empty;",
+                                                                                    "    pm.collectionVariables.set(\u0027token\u0027, token);",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "02 List Requests",
+                     "item":  [
+                                  {
+                                      "name":  "GET bookings list (exact MD filters)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields\u0026sort=-BookingDate\u0026filters.clientRef=CO00007168\u0026filters.bookingStatusId=53,76,83,77,74,75,72,96,73,71,95,69,94,99,60\u0026filters.eventFromDate=2028-07-14\u0026filters.eventToDate=2028-07-30",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "sort",
+                                                                                    "value":  "-BookingDate"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "filters.clientRef",
+                                                                                    "value":  "CO00007168"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "filters.bookingStatusId",
+                                                                                    "value":  "53,76,83,77,74,75,72,96,73,71,95,69,94,99,60"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "filters.eventFromDate",
+                                                                                    "value":  "2028-07-14"
+                                                                                },
+                                                                                {
+                                                                                    "key":  "filters.eventToDate",
+                                                                                    "value":  "2028-07-30"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.getRequests â€” exact clientRef CO00007168 + status/date filters from MD"
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "03 Create Request",
+                     "item":  [
+                                  {
+                                      "name":  "POST create booking (exact MD body)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.createOrUpdateRequest â€” exact create body from MD",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\r\n  \"data\": {\r\n    \"attributes\": {\r\n      \"bookingSourceId\": 6,\r\n      \"eventName\": \"LT-OL-HRP-K6-Test\",\r\n      \"salesChannelId\": 6\r\n    },\r\n    \"relationships\": {\r\n      \"bookingPackages\": {\r\n        \"data\": []\r\n      },\r\n      \"bookingStatus\": {\r\n        \"data\": {\r\n          \"id\": \"53\",\r\n          \"relationships\": {},\r\n          \"type\": \"bookingStatus\"\r\n        }\r\n      },\r\n      \"bookingUserDefinedFields\": {\r\n        \"data\": [\r\n          {\r\n            \"id\": \"53\",\r\n            \"relationships\": {},\r\n            \"type\": \"bookingUserDefinedField\"\r\n          },\r\n          {\r\n            \"id\": \"48\",\r\n            \"relationships\": {},\r\n            \"type\": \"bookingUserDefinedField\"\r\n          }\r\n        ]\r\n      },\r\n      \"contact\": {\r\n        \"data\": {\r\n          \"id\": \"7321\",\r\n          \"relationships\": {},\r\n          \"type\": \"contact\"\r\n        }\r\n      },\r\n      \"eventManager\": {\r\n        \"data\": {\r\n          \"id\": \"2\",\r\n          \"relationships\": {},\r\n          \"type\": \"user\"\r\n        }\r\n      },\r\n      \"paymentTerm\": {\r\n        \"data\": {\r\n          \"id\": \"9\",\r\n          \"relationships\": {},\r\n          \"type\": \"paymentTerm\"\r\n        }\r\n      }\r\n    },\r\n    \"type\": \"booking\"\r\n  },\r\n  \"included\": [\r\n    {\r\n      \"attributes\": {\r\n        \"value\": \"request\"\r\n      },\r\n      \"id\": \"53\",\r\n      \"relationships\": {\r\n        \"userDefinedField\": {\r\n          \"data\": {\r\n            \"id\": \"53\",\r\n            \"relationships\": {},\r\n            \"type\": \"userDefinedField\"\r\n          }\r\n        }\r\n      },\r\n      \"type\": \"bookingUserDefinedField\"\r\n    },\r\n    {\r\n      \"attributes\": {\r\n        \"value\": \"Signature Package\"\r\n      },\r\n      \"id\": \"48\",\r\n      \"relationships\": {\r\n        \"userDefinedField\": {\r\n          \"data\": {\r\n            \"id\": \"48\",\r\n            \"relationships\": {},\r\n            \"type\": \"userDefinedField\"\r\n          }\r\n        }\r\n      },\r\n      \"type\": \"bookingUserDefinedField\"\r\n    }\r\n  ]\r\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ],
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "type":  "text/javascript",
+                                                                       "exec":  [
+                                                                                    "pm.test(\u0027Create booking returns id\u0027, function () {",
+                                                                                    "    pm.response.to.have.status(200);",
+                                                                                    "    const id = pm.response.json()?.data?.id;",
+                                                                                    "    if (id) {",
+                                                                                    "      pm.collectionVariables.set(\u0027bookingId\u0027, String(id));",
+                                                                                    "      console.log(\u0027Created bookingId=\u0027 + id + \u0027 (MD sample used 142969)\u0027);",
+                                                                                    "    }",
+                                                                                    "});"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "04 Get Request",
+                     "item":  [
+                                  {
+                                      "name":  "GET booking 142969",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.getRequest"
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  },
+                                  {
+                                      "name":  "GET notes",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}/notes",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}",
+                                                                               "notes"
+                                                                           ],
+                                                                  "query":  [
+
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.getRequest notes"
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  },
+                                  {
+                                      "name":  "GET audit-histories",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.2/bookings/{{bookingId}}/audit-histories",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.2",
+                                                                               "bookings",
+                                                                               "{{bookingId}}",
+                                                                               "audit-histories"
+                                                                           ],
+                                                                  "query":  [
+
+                                                                            ]
+                                                              },
+                                                      "description":  "V4.2 audit-histories"
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "05 Add Packages (50)",
+                     "item":  [
+                                  {
+                                      "name":  "PATCH add 50 packages",
+                                      "request":  {
+                                                      "method":  "PATCH",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "Built from truncated MD reference to proper 50-package payload. First 4 packages exact from MD; remaining 46 follow same structure.",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"data\":{\"attributes\":{\"bookingSourceId\":6,\"eventName\":\"LT-OL-HRP-K6-Test\",\"salesChannelId\":6},\"id\":\"{{bookingId}}\",\"relationships\":{\"bookingPackages\":{\"data\":[{\"id\":\"-1\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-2\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-3\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-4\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-5\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-6\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-7\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-8\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-9\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-10\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-11\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-12\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-13\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-14\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-15\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-16\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-17\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-18\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-19\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-20\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-21\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-22\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-23\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-24\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-25\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-26\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-27\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-28\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-29\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-30\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-31\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-32\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-33\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-34\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-35\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-36\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-37\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-38\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-39\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-40\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-41\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-42\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-43\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-44\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-45\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-46\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-47\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-48\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-49\",\"relationships\":{},\"type\":\"bookingPackage\"},{\"id\":\"-50\",\"relationships\":{},\"type\":\"bookingPackage\"}]}},\"type\":\"booking\"},\"included\":[{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-27T20:00:00\"},\"id\":\"-1\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-30T11:15:00\"},\"id\":\"-2\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-30T11:15:00\"},\"id\":\"-3\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-26T16:00:00\"},\"id\":\"-4\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-18T14:00:00\"},\"id\":\"-5\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-19T15:00:00\"},\"id\":\"-6\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-20T16:00:00\"},\"id\":\"-7\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-21T17:00:00\"},\"id\":\"-8\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-22T18:00:00\"},\"id\":\"-9\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-23T19:00:00\"},\"id\":\"-10\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-24T20:00:00\"},\"id\":\"-11\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-25T11:15:00\"},\"id\":\"-12\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-26T16:00:00\"},\"id\":\"-13\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-27T20:00:00\"},\"id\":\"-14\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-28T11:15:00\"},\"id\":\"-15\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-29T12:00:00\"},\"id\":\"-16\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-30T11:15:00\"},\"id\":\"-17\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-14T10:00:00\"},\"id\":\"-18\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-15T11:15:00\"},\"id\":\"-19\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-16T12:00:00\"},\"id\":\"-20\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-17T13:00:00\"},\"id\":\"-21\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-18T14:00:00\"},\"id\":\"-22\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-19T15:00:00\"},\"id\":\"-23\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-20T16:00:00\"},\"id\":\"-24\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-21T17:00:00\"},\"id\":\"-25\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-22T18:00:00\"},\"id\":\"-26\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-23T19:00:00\"},\"id\":\"-27\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-24T20:00:00\"},\"id\":\"-28\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-25T11:15:00\"},\"id\":\"-29\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-26T16:00:00\"},\"id\":\"-30\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-27T20:00:00\"},\"id\":\"-31\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-28T11:15:00\"},\"id\":\"-32\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-29T12:00:00\"},\"id\":\"-33\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-30T11:15:00\"},\"id\":\"-34\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-14T10:00:00\"},\"id\":\"-35\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-15T11:15:00\"},\"id\":\"-36\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-16T12:00:00\"},\"id\":\"-37\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-17T13:00:00\"},\"id\":\"-38\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-18T14:00:00\"},\"id\":\"-39\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-19T15:00:00\"},\"id\":\"-40\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-20T16:00:00\"},\"id\":\"-41\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-21T17:00:00\"},\"id\":\"-42\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-22T18:00:00\"},\"id\":\"-43\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-23T19:00:00\"},\"id\":\"-44\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-24T20:00:00\"},\"id\":\"-45\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-25T11:15:00\"},\"id\":\"-46\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-26T16:00:00\"},\"id\":\"-47\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3471\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-27T20:00:00\"},\"id\":\"-48\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2225\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-28T11:15:00\"},\"id\":\"-49\",\"relationships\":{\"package\":{\"data\":{\"id\":\"2088\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"},{\"attributes\":{\"quantity\":1,\"startDate\":\"2028-07-29T12:00:00\"},\"id\":\"-50\",\"relationships\":{\"package\":{\"data\":{\"id\":\"3416\",\"relationships\":{},\"type\":\"publicPackage\"}},\"referrerContact\":{\"data\":{\"id\":\"7321\",\"relationships\":{},\"type\":\"contact\"}}},\"type\":\"bookingPackage\"}]}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "06 Submit",
+                     "item":  [
+                                  {
+                                      "name":  "PATCH submit status 76",
+                                      "request":  {
+                                                      "method":  "PATCH",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.submitRequest â€” exact MD body",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\r\n  \"data\": {\r\n    \"id\": \"{{bookingId}}\",\r\n    \"relationships\": {\r\n      \"bookingStatus\": {\r\n        \"data\": {\r\n          \"id\": \"76\",\r\n          \"relationships\": {},\r\n          \"type\": \"bookingStatus\"\r\n        }\r\n      }\r\n    },\r\n    \"type\": \"booking\"\r\n  }\r\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "07 Unsubmit",
+                     "item":  [
+                                  {
+                                      "name":  "PATCH unsubmit status 53",
+                                      "request":  {
+                                                      "method":  "PATCH",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}"
+                                                                           ],
+                                                                  "query":  [
+                                                                                {
+                                                                                    "key":  "include",
+                                                                                    "value":  "client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item"
+                                                                                }
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.unsubmitRequest â€” exact MD body",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\r\n  \"data\": {\r\n    \"id\": \"{{bookingId}}\",\r\n    \"relationships\": {\r\n      \"bookingStatus\": {\r\n        \"data\": {\r\n          \"id\": \"53\",\r\n          \"relationships\": {},\r\n          \"type\": \"bookingStatus\"\r\n        }\r\n      }\r\n    },\r\n    \"type\": \"booking\"\r\n  }\r\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "08 Cancel / Unpublish",
+                     "item":  [
+                                  {
+                                      "name":  "POST cancel-booking",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "token",
+                                                                         "value":  "{{token}}",
+                                                                         "type":  "text"
+                                                                     },
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json",
+                                                                         "type":  "text"
+                                                                     }
+                                                                 ],
+                                                      "url":  {
+                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}/cancel-booking",
+                                                                  "protocol":  "https",
+                                                                  "host":  [
+                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                           ],
+                                                                  "path":  [
+                                                                               "restapi",
+                                                                               "api",
+                                                                               "V4.1",
+                                                                               "bookings",
+                                                                               "{{bookingId}}",
+                                                                               "cancel-booking"
+                                                                           ],
+                                                                  "query":  [
+
+                                                                            ]
+                                                              },
+                                                      "description":  "RequestController.unpublishRequest â€” exact MD body",
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\r\n  \"data\": {\r\n    \"attributes\": {\r\n      \"cancellationFee\": \"0\",\r\n      \"cancellationReasonId\": \"2\",\r\n      \"cancelled\": true,\r\n      \"cancelledDate\": \"2026-08-04\",\r\n      \"note\": \"Cancelled by user\"\r\n    },\r\n    \"id\": \"{{bookingId}}\",\r\n    \"relationships\": {},\r\n    \"type\": \"booking\"\r\n  }\r\n}",
+                                                                   "options":  {
+                                                                                   "raw":  {
+                                                                                               "language":  "json"
+                                                                                           }
+                                                                               }
+                                                               }
+                                                  },
+                                      "response":  [
+
+                                                   ]
+                                  }
+                              ]
+                 }
+             ],
+    "variable":  [
+                     {
+                         "key":  "username",
+                         "type":  "string",
+                         "value":  "optimo"
+                     },
+                     {
+                         "key":  "password",
+                         "type":  "string",
+                         "value":  "12345"
+                     },
+                     {
+                         "key":  "token",
+                         "type":  "string",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "bookingId",
+                         "type":  "string",
+                         "value":  "142969"
+                     }
+                 ]
+}

@@ -23,6 +23,10 @@
  * Requires Node 18+ (global fetch).
  */
 
+const path = require("path");
+const { loadProjectEnv } = require("../shared/load-env.js");
+loadProjectEnv(path.join(__dirname, ".."), __dirname);
+
 const DEFAULT_BASE = "https://wcc-uat.optimo.training/restapi";
 
 /** Same `include` as your browser curl (trimmed only if you change API). */
