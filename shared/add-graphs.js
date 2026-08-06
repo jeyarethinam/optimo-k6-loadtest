@@ -388,10 +388,13 @@ function main() {
   }
   if (updated.length > 0) {
     console.log(`Charts (VU, req/s, avg/percentiles, error %, performance indicators) added to: ${updated.join(", ")}.`);
-    const primary = path.join(TARGET_DIR, "report.html");
-    const stamped = writeTimestampedReportCopy(TARGET_DIR, summary, TEST_MODE, primary);
-    if (stamped) {
-      console.log(`Timestamped report copy created: ${stamped}`);
+    // HRP (and others) can archive after failure injection via SKIP_TIMESTAMPED_REPORT_COPY=1
+    if (process.env.SKIP_TIMESTAMPED_REPORT_COPY !== "1") {
+      const primary = path.join(TARGET_DIR, "report.html");
+      const stamped = writeTimestampedReportCopy(TARGET_DIR, summary, TEST_MODE, primary);
+      if (stamped) {
+        console.log(`Timestamped report copy created: ${stamped}`);
+      }
     }
   } else {
     console.log("No supported report file found for chart injection.");

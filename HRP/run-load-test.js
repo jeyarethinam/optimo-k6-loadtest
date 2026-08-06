@@ -1,6 +1,8 @@
 /**
- * HRP k6 runner: artifacts stay under ./HRP/ (report.html, summary.json, metrics.json, k6-run.log, failed-requests.*).
- */
+ * HRP k6 runner: artifacts under ./HRP/
+ * - report.html / summary.json = latest run (working copies)
+ * - report_YYYYMMDD_HHMMSS_<mode>.html = dated archive (kept each run)
+ */)
 const { spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -115,6 +117,8 @@ function teeAndRun() {
       postStatus = Math.max(postStatus, runExtractFailures());
       postStatus = Math.max(postStatus, runInjectFailuresIntoReport());
       postStatus = Math.max(postStatus, runExtractErrorBookings());
+      // Archive final report after charts + failure injection (do not overwrite prior dated reports)
+      postStatus = Math.max(postStatus, archiveTimestampedReport());
       process.exit(Math.max(code || 0, postStatus));
     });
   });
@@ -127,10 +131,47 @@ function teeAndRun() {
   });
 }
 
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function formatRunStamp(d = new Date()) {
+  return `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
+}
+
+function archiveTimestampedReport() {
+  const reportPath = path.join(HRP_DIR, "report.html");
+  if (!fs.existsSync(reportPath)) {
+    console.warn("No HRP/report.html to archive.");
+    return 0;
+  }
+  const stamp = formatRunStamp();
+  const modeSlug = String(mode || "run")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "") || "run";
+  const reportName = `report_${stamp}_${modeSlug}.html`;
+  const reportOut = path.join(HRP_DIR, reportName);
+  fs.copyFileSync(reportPath, reportOut);
+
+  const summaryPath = path.join(HRP_DIR, "summary.json");
+  if (fs.existsSync(summaryPath)) {
+    fs.copyFileSync(summaryPath, path.join(HRP_DIR, `summary_${stamp}_${modeSlug}.json`));
+  }
+
+  fs.writeFileSync(path.join(HRP_DIR, ".hrp-last-report"), reportName + "\n", "utf8");
+  console.log(`Dated report saved: HRP/${reportName}`);
+  console.log(`(Latest working copy remains HRP/report.html)`);
+  return 0;
+}
+
 function runAddGraphs() {
-  const r = spawnSync("node", [path.join(REPO_ROOT, "shared", "add-graphs.js"), HRP_DIR], {
+  const r = spawnSync("node", [path.join(REPO_ROOT, "shared", "add-graphs.js"), HRP_DIR, mode], {
     cwd: REPO_ROOT,
     stdio: "inherit",
+    env: { ...process.env, TEST_MODE: mode, SKIP_TIMESTAMPED_REPORT_COPY: "1" },
   });
   return r.status || 0;
 }

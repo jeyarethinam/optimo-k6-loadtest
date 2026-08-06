@@ -2,8 +2,8 @@ __pycache__/
 *.pyc
 node_modules/
 
-# Local secrets (keep .env.example committed)
-.env
+# Local secrets (test-env .env is committed by request)
+# .env
 .env.local
 LA28/.env
 wcc/.env
@@ -31,7 +31,10 @@ wcc/error-report.txt
 HRP/k6-run.log
 HRP/metrics.json
 HRP/report.html
+HRP/report_*.html
 HRP/summary.json
+HRP/summary_*.json
+HRP/.hrp-last-report
 HRP/failed-requests.json
 HRP/failed-requests.csv
 HRP/error-report.json
