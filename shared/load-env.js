@@ -32,7 +32,7 @@ function loadEnvFile(filePath) {
 }
 
 /**
- * Load repo-root `.env`, then optional suite file (e.g. `LA28/.env` or `wcc/.env`).
+ * Load repo-root `.env`, then optional suite file (e.g. `ECOM/.env` or `wcc/.env`).
  * @param {string} repoRoot
  * @param {string} [suiteDir]
  */

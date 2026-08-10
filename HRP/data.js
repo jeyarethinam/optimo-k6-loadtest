@@ -1,6 +1,6 @@
 /**
  * HRP (Hospitality Request Portal) k6 config.
- * Override via env — same pattern as LA28 `data.js` / WCC `wcc-data.js`.
+ * Override via env — same pattern as ECOM `data.js` / WCC `wcc-data.js`.
  */
 
 function envStr(name, fallback = "") {
@@ -15,7 +15,7 @@ function envNum(name, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
-/** Prefer HRP_* then fall back to shared LA28 vars. */
+/** Prefer HRP_* then fall back to shared ECOM vars. */
 export const BASE_URL = envStr("HRP_BASE_URL", envStr("BASE_URL", "")).replace(/\/+$/, "");
 
 export const LOGIN_PAYLOAD = {

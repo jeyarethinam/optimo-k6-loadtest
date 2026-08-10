@@ -1,5 +1,5 @@
 /**
- * WCC UAT configuration and JSON bodies for k6 (separate from LA28 `data.js`).
+ * WCC UAT configuration and JSON bodies for k6 (separate from ECOM `data.js`).
  * Override via env vars (same names as Postman `WCC-UAT` where applicable).
  */
 
@@ -172,7 +172,7 @@ export function wccConfig(complexRangeOverride) {
   };
 }
 
-/** First payment-term detail id linked from a `paymentTerm` entry in booking `included` (LA28-style discovery). */
+/** First payment-term detail id linked from a `paymentTerm` entry in booking `included` (ECOM-style discovery). */
 export function extractPaymentTermDetailIdFromBookingIncluded(json) {
   if (!json?.included) return "";
   for (const item of json.included) {
@@ -185,7 +185,7 @@ export function extractPaymentTermDetailIdFromBookingIncluded(json) {
 }
 
 /**
- * Invoice from payment schedule (no booking line-item ids). Same contract as LA28 `invoiceCreate` payload.
+ * Invoice from payment schedule (no booking line-item ids). Same contract as ECOM `invoiceCreate` payload.
  */
 export function buildWccInvoicePaymentTermBody(paymentTermDetailId) {
   const raw = String(paymentTermDetailId ?? "").trim();

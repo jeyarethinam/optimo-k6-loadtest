@@ -7,17 +7,17 @@
  *   node extract-failures.js [logfile]
  *   node extract-failures.js k6-run.log
  *
- * Default log file: LA28/k6-run.log
+ * Default log file: ECOM/k6-run.log
  *
- * Output files (next to the log file, e.g. LA28/ or wcc/):
- *   failed-requests.json  - array of failed request objects
+ * Output files (next to the log file, e.g. ECOM/, HRP/, or wcc/):
+ *   failed-requests.json  - { generatedAt, totalFailedRequests, failures: [...] }
  *   failed-requests.csv    - same data in CSV format
  */
 
 const fs = require("fs");
 const path = require("path");
 
-const DEFAULT_LOG = path.join(__dirname, "LA28", "k6-run.log");
+const DEFAULT_LOG = path.join(__dirname, "ECOM", "k6-run.log");
 const logFile = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_LOG;
 const outDir = path.dirname(logFile);
 const OUT_JSON = path.join(outDir, "failed-requests.json");
@@ -34,7 +34,7 @@ function main() {
   if (!fs.existsSync(logFile)) {
     console.error("Log file not found:", logFile);
     console.error("Run the load test with output saved, e.g.:");
-    console.error("  cd LA28 && k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | tee k6-run.log");
+    console.error("  cd ECOM && k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | tee k6-run.log");
     console.error("  npm run peak");
     process.exit(1);
   }
@@ -107,7 +107,10 @@ function main() {
     "bookingId",
     "packageId",
     "invoiceId",
+    "contactId",
     "endpoint",
+    "networkError",
+    "networkErrorCode",
     "requestBody",
     "responseBody",
   ];

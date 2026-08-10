@@ -141,13 +141,13 @@ When a request fails, the script logs a structured line (`ERROR_REPORT`) with en
    k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | Tee-Object -FilePath my-run.log
    ```
 
-2. **Generate the error report** (reads the log and writes `error-report.json` / `error-report.txt` **next to that log**, e.g. under `LA28/` or `wcc/`):
+2. **Generate the error report** (reads the log and writes `error-report.json` / `error-report.txt` **next to that log**, e.g. under `ECOM/` or `wcc/`):
 
    ```powershell
-   node extract-error-bookings.js LA28/k6-run.log
+   node extract-error-bookings.js ECOM/k6-run.log
    ```
 
-   Or use the npm shortcuts (LA28 default: `LA28/k6-run.log`, WCC: `wcc/k6-run.log`):
+   Or use the npm shortcuts (ECOM default: `ECOM/k6-run.log`, WCC: `wcc/k6-run.log`):
 
    ```powershell
    npm run extract-errors

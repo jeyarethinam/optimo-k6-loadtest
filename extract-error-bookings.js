@@ -9,9 +9,9 @@
  *   node extract-error-bookings.js [logfile]
  *   node extract-error-bookings.js peak.log
  *
- * Default log file: LA28/k6-run.log
+ * Default log file: ECOM/k6-run.log
  *
- * Output files (next to the log file, e.g. LA28/ or wcc/):
+ * Output files (next to the log file, e.g. ECOM/ or wcc/):
  *   error-report.json  - full list of failures with all IDs
  *   error-report.txt   - human-readable summary
  */
@@ -19,7 +19,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const DEFAULT_LOG = path.join(__dirname, "LA28", "k6-run.log");
+const DEFAULT_LOG = path.join(__dirname, "ECOM", "k6-run.log");
 const logFile = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_LOG;
 const outDir = path.dirname(logFile);
 const REPORT_JSON = path.join(outDir, "error-report.json");
@@ -44,7 +44,7 @@ function main() {
   if (!fs.existsSync(logFile)) {
     console.error("Log file not found:", logFile);
     console.error("Run your test and save output first, e.g.:");
-    console.error("  cd LA28 && k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | tee k6-run.log");
+    console.error("  cd ECOM && k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | tee k6-run.log");
     console.error("  npm run peak");
     process.exit(1);
   }

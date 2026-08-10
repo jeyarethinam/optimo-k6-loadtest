@@ -1,5 +1,5 @@
 /**
- * Inject failed-requests.json into HRP report Error Capture section.
+ * Inject failed-requests.json into ECOM report Error Capture section.
  * Called by run-load-test.js after extract-failures.js.
  *
  * Supports both shapes from extract-failures.js:
@@ -9,11 +9,11 @@
 const fs = require("fs");
 const path = require("path");
 
-const HRP_DIR = __dirname;
-const REPORT = path.join(HRP_DIR, "report.html");
-const FAILURES = path.join(HRP_DIR, "failed-requests.json");
-const LAST_REPORT = path.join(HRP_DIR, ".hrp-last-report");
-const MARKER = "<!--HRP_FAILED_REQUESTS-->";
+const ECOM_DIR = __dirname;
+const REPORT = path.join(ECOM_DIR, "report.html");
+const FAILURES = path.join(ECOM_DIR, "failed-requests.json");
+const LAST_REPORT = path.join(ECOM_DIR, ".ecom-last-report");
+const MARKER = "<!--ECOM_FAILED_REQUESTS-->";
 
 function escapeHtml(v) {
   return String(v ?? "")
@@ -49,7 +49,7 @@ function readFailuresList(filePath) {
 
 function buildFailuresHtml(failures) {
   if (!failures.length) {
-    return `<p class="note">No failed requests captured in this run (no non-2xx / network failures in <code>k6-run.log</code>). Slow 2xx responses are not listed here — check latency charts above. For API log correlation use booking/package IDs from the report and <code>HRP_IDS</code> lines in the log.</p>`;
+    return `<p class="note">No failed requests captured in this run (no non-2xx / network failures in <code>k6-run.log</code>). Slow 2xx responses are not listed here — check latency charts above. For API log correlation use booking/package IDs from the report and <code>SMOKE_IDS</code> lines in the log.</p>`;
   }
 
   const cards = failures
@@ -91,8 +91,7 @@ function injectIntoReport(reportPath, sectionHtml) {
   let html = fs.readFileSync(reportPath, "utf8");
   if (!html.includes(MARKER)) return false;
 
-  // Replace everything after the marker until the Error Capture panel closes
-  const sectionStart = html.indexOf('id="hrp-failed-requests-section"');
+  const sectionStart = html.indexOf('id="ecom-failed-requests-section"');
   if (sectionStart === -1) return false;
   const markerAt = html.indexOf(MARKER, sectionStart);
   if (markerAt === -1) return false;
@@ -118,7 +117,7 @@ function main() {
   const targets = [REPORT];
   if (fs.existsSync(LAST_REPORT)) {
     const name = fs.readFileSync(LAST_REPORT, "utf8").trim();
-    if (name) targets.push(path.join(HRP_DIR, name));
+    if (name) targets.push(path.join(ECOM_DIR, name));
   }
 
   let updated = 0;
@@ -134,7 +133,7 @@ function main() {
   }
 
   if (!updated) {
-    console.error("No HRP report with Error Capture marker found.");
+    console.error("No ECOM report with Error Capture marker found.");
     return 1;
   }
   return 0;

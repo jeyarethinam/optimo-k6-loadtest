@@ -2,29 +2,180 @@ import http from "k6/http";
 import { BASE_URL } from "../data.js";
 import { getHeaders, validate } from "../../shared/helpers.js";
 
-export function createBooking(token, contactId) {
-  const paymentTermId = __ENV.ECOM_PAYMENT_TERM_ID || "19";
-  const salesChannelId = Number(__ENV.ECOM_SALES_CHANNEL_ID || "1");
-  const payload = {
-    data: {
-      relationships: {
-        contact: { data: { id: String(contactId), type: "contact" } },
-        bookingStatus: { data: { id: "81", type: "bookingStatus" } },
-        paymentTerm: { data: { id: paymentTermId, type: "paymentTerm" } },
-      },
-      attributes: {
-        salesChannelId,
-        temporary: true,
-      },
-      type: "Booking",
-    },
-  };
-  const res = http.post(`${BASE_URL}/api/V4.1/bookings`, JSON.stringify(payload), getHeaders(token));
-  validate(res, "Create Booking", null, { requestBody: payload });
+const CREATE_BOOKING_LABEL = "Create Booking (with package with Stock allocated)";
+
+/** Default package pool — Package Select picks one at random before Create Booking. */
+const DEFAULT_PACKAGE_IDS = [
+  "7663", "7662", "7661", "7660", "7659", "7658", "7657", "7656", "7655", "7654",
+  "7653", "7652", "7651", "7650", "7649", "7648", "7647", "7646", "7645", "7644",
+  "7643", "7642", "7641", "7640", "7639", "7638", "7637", "7636", "7635", "7634",
+  "7633", "7632", "7631", "7630", "7629", "7628", "7627", "7626", "7625", "7624",
+  "7623", "7622", "7621", "7620", "7619", "7618", "7617", "7616", "7615", "7614",
+];
+
+function getPackageIdPool() {
+  const envIds = String(__ENV.PACKAGE_IDS || __ENV.ECOM_PACKAGE_ID || "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  return envIds.length ? envIds : DEFAULT_PACKAGE_IDS.slice();
+}
+
+function pickRandomPackageId(exclude = []) {
+  const skip = new Set((exclude || []).map((x) => String(x)));
+  const pool = getPackageIdPool().filter((id) => !skip.has(String(id)));
+  const ids = pool.length ? pool : getPackageIdPool();
+  return String(ids[Math.floor(Math.random() * ids.length)]);
+}
+
+function extractPaymentTermDetailId(json) {
+  for (const item of json?.included || []) {
+    if (String(item?.type || "").toLowerCase() === "paymentterm") {
+      const id = item?.relationships?.paymentTermDetails?.data?.[0]?.id || null;
+      if (id) return id;
+    }
+  }
+  return null;
+}
+
+/** Session dates only (no Package Select metric) — used on create retries. */
+function fetchPackageSessionDates(token, packageId) {
+  const res = http.get(
+    `${BASE_URL}/api/V4.1/products/packages/${packageId}?include=PublicPackage.PackageSessions`,
+    getHeaders(token)
+  );
+  if (res.status < 200 || res.status >= 300) {
+    return {
+      packageId: String(packageId),
+      pStartDate: __ENV.ECOM_PACKAGE_START || "2028-07-04T08:00:00",
+      pEndDate: __ENV.ECOM_PACKAGE_END || "2028-07-04T17:00:00",
+    };
+  }
   const body = res.json() || {};
+  const included = Array.isArray(body?.included) ? body.included : [];
+  const sess = included.find((x) => String(x?.type || "").toLowerCase() === "packagesession");
   return {
-    bookingId: body?.data?.id || null,
-    contactId: body?.data?.contact?.id || body?.data?.relationships?.contact?.data?.id || null,
+    packageId: body?.data?.id || String(packageId),
+    pStartDate: sess?.attributes?.startTime || __ENV.ECOM_PACKAGE_START || "2028-07-04T08:00:00",
+    pEndDate: sess?.attributes?.endTime || __ENV.ECOM_PACKAGE_END || "2028-07-04T17:00:00",
+  };
+}
+
+function resolvePackageCandidates(preferredId) {
+  const pool = getPackageIdPool();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const tmp = pool[i];
+    pool[i] = pool[j];
+    pool[j] = tmp;
+  }
+  const ordered = [preferredId, ...pool]
+    .map((x) => String(x || "").trim())
+    .filter(Boolean);
+  return ordered.filter((v, i, a) => a.indexOf(v) === i);
+}
+
+function isRetryablePackageCreateError(res) {
+  if (res.status !== 400) return false;
+  const body = String(res.body || "");
+  return (
+    body.includes("Sales channel does not match with the package sales channel") ||
+    body.includes("The package must be active") ||
+    body.includes("Valid Package Session Not Found")
+  );
+}
+
+/**
+ * Confirmed ecom create: package (+ stock allocation) in one POST.
+ * Dates preferably from Package Select; env/curl defaults as fallback.
+ */
+export function createBooking(token, contactId, packageId, pStartDate, pEndDate) {
+  const salesChannelId = Number(__ENV.ECOM_SALES_CHANNEL_ID || "1");
+  const priceConcessionId = String(__ENV.ECOM_PRICE_CONCESSION_ID || "8");
+  const candidates = resolvePackageCandidates(packageId);
+  let lastRes = null;
+  let lastPayload = null;
+  let selectedPackageId = candidates[0] || "7663";
+  let startDate = pStartDate || __ENV.ECOM_PACKAGE_START || "2028-07-04T08:00:00";
+  let endDate = pEndDate || __ENV.ECOM_PACKAGE_END || "2028-07-04T17:00:00";
+
+  for (let i = 0; i < candidates.length; i++) {
+    selectedPackageId = candidates[i];
+    // First attempt: dates from Package Select (already run before create).
+    // Retries: pick next array id + refresh session dates quietly.
+    if (i > 0 || !pStartDate || !pEndDate) {
+      const sess = fetchPackageSessionDates(token, selectedPackageId);
+      selectedPackageId = sess.packageId || selectedPackageId;
+      startDate = sess.pStartDate || startDate;
+      endDate = sess.pEndDate || endDate;
+    }
+
+    const relationships = {
+      priceConcession: { data: { id: priceConcessionId, type: "priceConcession" } },
+      bookingPackages: { data: [{ id: "-1", type: "bookingPackage" }] },
+    };
+    if (contactId) {
+      relationships.contact = { data: { id: String(contactId), type: "contact" } };
+    }
+
+    const payload = {
+      data: {
+        type: "Booking",
+        attributes: {
+          salesChannelId,
+          alternativeBookingRef: "",
+          externalBookingId: "",
+        },
+        relationships,
+      },
+      included: [
+        {
+          type: "bookingPackage",
+          id: "-1",
+          attributes: {
+            quantity: 1,
+            startDate,
+            endDate,
+          },
+          relationships: {
+            package: { data: { id: selectedPackageId, type: "PublicPackage" } },
+          },
+        },
+      ],
+    };
+    lastPayload = payload;
+
+    const res = http.post(`${BASE_URL}/api/v4.1/bookings`, JSON.stringify(payload), getHeaders(token));
+    lastRes = res;
+
+    if (isRetryablePackageCreateError(res) && i < candidates.length - 1) {
+      continue;
+    }
+
+    validate(res, CREATE_BOOKING_LABEL, { contactId, packageId: selectedPackageId }, { requestBody: payload });
+    const body = res.json() || {};
+    return {
+      bookingId: body?.data?.id || null,
+      contactId: body?.data?.relationships?.contact?.data?.id || contactId || null,
+      packageId: selectedPackageId,
+      paymentTermDetailId: extractPaymentTermDetailId(body),
+      pStartDate: startDate,
+      pEndDate: endDate,
+    };
+  }
+
+  if (lastRes) {
+    validate(lastRes, CREATE_BOOKING_LABEL, { contactId, packageId: selectedPackageId }, {
+      requestBody: lastPayload,
+    });
+  }
+  return {
+    bookingId: null,
+    contactId: contactId || null,
+    packageId: selectedPackageId,
+    paymentTermDetailId: null,
+    pStartDate: startDate,
+    pEndDate: endDate,
   };
 }
 
@@ -38,27 +189,27 @@ export function bookingSelect(token, bookingId) {
   };
 }
 
+/**
+ * Runs BEFORE Create Booking. Randomly picks a package id from the array
+ * (or PACKAGE_IDS env), then loads session start/end for the create POST.
+ */
 export function packageSelect(token, packageId = null) {
-  const envIds = (__ENV.PACKAGE_IDS || "").split(",").map((x) => x.trim()).filter(Boolean);
-  // const ids = envIds.length ? envIds : [5280,5281,5282,5283,5284,5285,5286,5287,5288,5289];//uat 
-  // const ids = envIds.length ? envIds : [3016];//UAT
-   const ids = envIds.length ? envIds : [4130,4129,4128,4127,4126,4125,4124,4123,4122,4121];//optimodevv5
-  // const ids = envIds.length ? envIds : [4124];//optimodevv5
-  // const ids = envIds.length ? envIds : [7415,7414,7413,7412,7411,7410,7409,7408,7407,7406];//play
-  // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
-  // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
-  const selectedId = packageId != null && packageId !== ""
-    ? String(packageId)
-    : String(ids[Math.floor(Math.random() * ids.length)]);
-  const res = http.get(`${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`, getHeaders(token));
+  const selectedId =
+    packageId != null && packageId !== ""
+      ? String(packageId)
+      : pickRandomPackageId();
+  const res = http.get(
+    `${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`,
+    getHeaders(token)
+  );
   validate(res, "Package Select", { packageId: selectedId });
   const body = res.json() || {};
   const included = Array.isArray(body?.included) ? body.included : [];
   const sess = included.find((x) => String(x?.type || "").toLowerCase() === "packagesession");
   return {
     packageId: body?.data?.id || String(selectedId),
-    pStartDate: sess?.attributes?.startTime || null,
-    pEndDate: sess?.attributes?.endTime || null,
+    pStartDate: sess?.attributes?.startTime || __ENV.ECOM_PACKAGE_START || "2028-07-04T08:00:00",
+    pEndDate: sess?.attributes?.endTime || __ENV.ECOM_PACKAGE_END || "2028-07-04T17:00:00",
   };
 }
 
@@ -160,7 +311,7 @@ export function bookingStatusList(token) {
         getHeaders(token)
     );
 
-    validate(res, "Booking Status");
+    validate(res, "Booking Status List");
 
     if (res.status !== 200) {
         console.error("❌ BOOKING STATUS LIST FAILURE");
@@ -186,11 +337,24 @@ export function bookingStatusList(token) {
     return body.data[0].id;
 }
 
-export function confirmBooking(token, bookingId) {
-
-  const payload = { data: { attributes: { temporary: false }, id: bookingId, type: "booking" } };
+/**
+ * PATCH only — pass confirmedStatusId from Booking Status List step.
+ * Default "60" if caller did not look it up.
+ */
+export function confirmBooking(token, bookingId, confirmedStatusId = "60") {
+  const statusId = String(confirmedStatusId || "60");
+  const payload = {
+    data: {
+      id: bookingId,
+      type: "booking",
+      attributes: { temporary: false },
+      relationships: {
+        bookingStatus: { data: { id: statusId, type: "bookingStatus" } },
+      },
+    },
+  };
   const res = http.patch(`${BASE_URL}/api/V4.1/bookings/${bookingId}`, JSON.stringify(payload), getHeaders(token));
-  validate(res, "Confirm Booking", { bookingId }, { requestBody: payload });
+  validate(res, "Confirm Booking", { bookingId, bookingStatusId: statusId }, { requestBody: payload });
   return true;
 }
 
@@ -456,16 +620,9 @@ export function getBookingFullDetails(token, bookingId) {
   const res = http.get(`${BASE_URL}/api/V4.1/bookings/${bookingId}?include=bookingPackages,paymentTerm,invoices,contact`, getHeaders(token));
   validate(res, "Get Booking Full Details", { bookingId });
   const json = res.json() || {};
-  let paymentTermDetailId = null;
-  for (const item of json?.included || []) {
-    if (String(item?.type || "").toLowerCase() === "paymentterm") {
-      paymentTermDetailId = item?.relationships?.paymentTermDetails?.data?.[0]?.id || null;
-      if (paymentTermDetailId) break;
-    }
-  }
   return {
     contactId: json?.data?.relationships?.contact?.data?.id || null,
-    paymentTermDetailId,
+    paymentTermDetailId: extractPaymentTermDetailId(json),
     invoiceId: json?.data?.relationships?.invoices?.data?.[0]?.id || null,
     rClientId: json?.data?.relationships?.client?.data?.id || null,
   };

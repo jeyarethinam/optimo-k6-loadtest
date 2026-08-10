@@ -1,5 +1,5 @@
 /**
- * HRP HTML report — glassmorphism UX (aligned with client sample) + accurate k6 flow metrics.
+ * ECOM HTML report — glassmorphism UX (aligned with client sample) + accurate k6 flow metrics.
  */
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
@@ -111,21 +111,43 @@ function countBreachedThresholds(data) {
 }
 
 function getStepMeta(step) {
-  const map = {
-    Login: { endpoint: "Login", method: "POST" },
-    ListBookings: { endpoint: "List Bookings", method: "GET" },
-    CreateBooking: { endpoint: "Create Booking", method: "POST" },
-    GetBooking: { endpoint: "Get Booking", method: "GET" },
-    GetNotes: { endpoint: "Get Notes", method: "GET" },
-    GetAuditHistories: { endpoint: "Get Audit Histories", method: "GET" },
-    Add50Packages: { endpoint: "Add 50 Packages", method: "PATCH" },
-    GetBookingAfterPackages: { endpoint: "Get Booking", method: "GET" },
-    SubmitBooking: { endpoint: "Submit Booking", method: "PATCH" },
-    UnsubmitBooking: { endpoint: "Unsubmit Booking", method: "PATCH" },
-    CancelBooking: { endpoint: "Cancel Booking", method: "POST" },
-    LoginRefresh: { endpoint: "Login", method: "POST" },
-  };
-  return map[step] || { endpoint: step, method: "N/A" };
+  if (step.startsWith("PackageSelect")) return { endpoint: "Package Select", method: "GET" };
+  if (step.startsWith("GetBookingFullDetails")) return { endpoint: "Get Booking Full Details", method: "GET" };
+  if (step.startsWith("GetContactWithInvoiceAddress")) return { endpoint: "Get Contact With Invoice Address", method: "GET" };
+  if (step === "Login") return { endpoint: "Login", method: "POST" };
+  if (step === "ClientCategory") return { endpoint: "Client Category", method: "GET" };
+  if (step === "ClientType") return { endpoint: "Client Type", method: "GET" };
+  if (step === "ClientTitle") return { endpoint: "Client Title", method: "GET" };
+  if (step === "CommunicationTypes") return { endpoint: "Communication Types", method: "GET" };
+  if (step === "Country") return { endpoint: "Country", method: "GET" };
+  if (step === "CreateClient") return { endpoint: "Create Client", method: "POST" };
+  if (step === "GetContact") return { endpoint: "Get Contact", method: "GET" };
+  if (step === "SearchContactByEmail" || step === "SearchContactByEmailEncoded") {
+    return { endpoint: "Search Contact By Email", method: "GET" };
+  }
+  if (step === "FindPriorityAccessBooking") return { endpoint: "Find Priority Access Booking", method: "GET" };
+  if (step === "CreateBooking") {
+    return { endpoint: "Create Booking (with package with Stock allocated)", method: "POST" };
+  }
+  if (step === "UpdateBookingPoReference") return { endpoint: "Update Booking PO Reference", method: "PATCH" };
+  if (step === "SearchBookingByEmail") return { endpoint: "Search Booking By Email", method: "GET" };
+  if (step === "BookingSelectA" || step === "BookingSelectB") return { endpoint: "Booking Select", method: "GET" };
+  if (step === "UpdateClient") return { endpoint: "Update Client", method: "PATCH" };
+  if (step === "GetBookingItems") return { endpoint: "Get Booking Items", method: "GET" };
+  if (step === "UpdateBookingWithContact") return { endpoint: "Update Booking with contact", method: "PATCH" };
+  if (step === "InvoiceCreate") return { endpoint: "Invoice Create", method: "POST" };
+  if (step === "PaymentSelect") return { endpoint: "Payment Select", method: "GET" };
+  if (step === "PaymentCreditCardTypes") return { endpoint: "Payment Credit Card Types", method: "GET" };
+  if (step === "BookingInvoices") return { endpoint: "Booking Invoices", method: "GET" };
+  if (step === "CreatePayment") return { endpoint: "Create Payment", method: "POST" };
+  if (step === "BookingStatusList") return { endpoint: "Booking Status List", method: "GET" };
+  if (step === "ConfirmBooking") return { endpoint: "Confirm Booking", method: "PATCH" };
+  if (step === "EmailTemplate") return { endpoint: "Email Template", method: "GET" };
+  if (step === "GenerateEmail") return { endpoint: "Generate Email", method: "POST" };
+  if (step === "SendEmail") return { endpoint: "Send Email", method: "POST" };
+  if (step === "GetInvoiceById") return { endpoint: "Get Invoice By ID", method: "GET" };
+  if (step === "LoginRefresh") return { endpoint: "Login", method: "POST" };
+  return { endpoint: step, method: "N/A" };
 }
 
 function mergeDurationValuesForStep(durEntries) {
@@ -200,9 +222,9 @@ function buildEndpointRows(data, flowStepOrder) {
  * @param {object} data k6 summary
  * @param {{ mode: string, environmentName: string, flowStepOrder: string[] }} opts
  */
-export function buildHrpReport(data, opts) {
+export function buildEcomReport(data, opts) {
   const mode = opts.mode || "smoke";
-  const environmentName = opts.environmentName || "HRP";
+  const environmentName = opts.environmentName || "ECOM";
   const flowStepOrder = opts.flowStepOrder || [];
   const isSmoke = String(mode).toLowerCase() === "smoke";
   const reportKind = isSmoke ? "Smoke" : "Load";
@@ -241,9 +263,9 @@ export function buildHrpReport(data, opts) {
   const vusMax = readMetricValue(data, "vus_max", "value", readMetricValue(data, "vus_max", "max", 0));
   const iterations = readMetricValue(data, "iterations", "count");
 
+  const clientId = readGaugeValue(data, "smoke_client_id");
   const bookingId = readGaugeValue(data, "smoke_booking_id");
   const contactId = readGaugeValue(data, "smoke_contact_id");
-  const packageCount = readGaugeValue(data, "smoke_package_count");
 
   const failCardClass = flowFailed > 0 ? "danger" : "success";
   const checkCardClass = checksOutcome.failed > 0 ? "danger" : "success";
@@ -321,8 +343,10 @@ export function buildHrpReport(data, opts) {
     })
     .join("");
 
+  // Number labels so repeats (e.g. Get Booking Full Details ×8) stay unique on the axis.
   const chartData = {
-    labels: endpointRows.map((r) => r.endpoint),
+    labels: endpointRows.map((r, i) => `${i + 1}. ${r.endpoint}`),
+    steps: endpointRows.map((r) => r.step),
     min: endpointRows.map((r) => Number(r.min.toFixed(3))),
     avg: endpointRows.map((r) => Number(r.avg.toFixed(3))),
     p95: endpointRows.map((r) => Number(r.p95.toFixed(3))),
@@ -335,17 +359,17 @@ export function buildHrpReport(data, opts) {
     ? `<div class="glass-panel">
         <h2><i class="fas fa-link"></i> Correlation IDs</h2>
         <table>
-          <thead><tr><th>contactId</th><th>bookingId</th><th>packageCount</th></tr></thead>
+          <thead><tr><th>clientId</th><th>contactId</th><th>bookingId</th></tr></thead>
           <tbody><tr>
+            <td>${escapeHtml(clientId || "—")}</td>
             <td>${escapeHtml(contactId || "—")}</td>
             <td>${escapeHtml(bookingId || "—")}</td>
-            <td>${escapeHtml(packageCount || "—")}</td>
           </tr></tbody>
         </table>
       </div>`
     : `<div class="glass-panel">
         <h2><i class="fas fa-link"></i> Correlation</h2>
-        <p class="note">Load run — per-VU booking IDs are in <code>k6-run.log</code> (<code>HRP_IDS</code> / <code>HRP_PACKAGES</code>). Failed APIs are listed in the Error Capture section below.</p>
+        <p class="note">Load run — per-VU booking IDs are in <code>k6-run.log</code> (<code>SMOKE_IDS</code> / <code>ECOM_IDS</code>). Failed APIs are listed in the Error Capture section below.</p>
       </div>`;
 
   return `<!DOCTYPE html>
@@ -353,7 +377,7 @@ export function buildHrpReport(data, opts) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HRP ${reportKind} Test Report — ${escapeHtml(formatDateTime(reportGeneratedAt))}</title>
+  <title>ECOM ${reportKind} Test Report — ${escapeHtml(formatDateTime(reportGeneratedAt))}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -584,7 +608,12 @@ export function buildHrpReport(data, opts) {
       border: 1px solid var(--border);
       border-radius: 14px;
       padding: 1rem;
-      min-height: 340px;
+      min-height: 420px;
+      overflow-x: auto;
+    }
+    .chart-box-inner {
+      height: 380px;
+      min-width: 100%;
     }
     /* Failed requests (injected after run) */
     .fail-card {
@@ -657,7 +686,7 @@ export function buildHrpReport(data, opts) {
     <header>
       <h1>
         <i class="fas fa-bolt"></i>
-        HRP ${reportKind} Test Report
+        ECOM ${reportKind} Test Report
       </h1>
       <span class="badge ${reportKindLower}"><i class="fas fa-${isSmoke ? "vial" : "gauge-high"}"></i> ${reportKind.toUpperCase()}</span>
     </header>
@@ -727,7 +756,7 @@ export function buildHrpReport(data, opts) {
         <p class="note">
           <b>Accuracy note:</b> <code>Total Requests</code> above uses validated <b>flow</b> APIs (${flowTotal}),
           same as the API Execution Table. Raw k6 <code>http_reqs</code> is ${allHttp}
-          because package-session lookups run before the 50-package PATCH.
+          because helper calls (e.g. package session lookups) can inflate raw HTTP counts.
         </p>
       </div>
 
@@ -796,24 +825,28 @@ export function buildHrpReport(data, opts) {
 
       <div class="glass-panel">
         <h2><i class="fas fa-chart-column"></i> Endpoint Comparison</h2>
-        <div class="chart-box"><canvas id="endpointComparisonChart"></canvas></div>
+        <p class="section-hint">All flow steps with samples (${endpointRows.length}). Scroll horizontally if needed. Login is omitted when auth runs in <code>setup()</code> (shared token).</p>
+        <div class="chart-box"><div class="chart-box-inner" id="endpointComparisonChartWrap"><canvas id="endpointComparisonChart"></canvas></div></div>
       </div>
 
-      <div class="glass-panel" id="hrp-failed-requests-section">
+      <div class="glass-panel" id="ecom-failed-requests-section">
         <h2><i class="fas fa-bug"></i> Error Capture — Failed Requests &amp; Responses</h2>
         <p class="section-hint">After the run, every non-2xx / network failure from <code>k6-run.log</code> (<code>K6_FAILED_REQUEST</code>) is injected here with full request + response bodies for API log diagnosis. Slow 2xx calls stay in the charts above only.</p>
-        <!--HRP_FAILED_REQUESTS-->
-        <p class="note" id="hrp-failed-placeholder">Waiting for post-run inject… If this remains after the runner finishes, check <code>HRP/failed-requests.json</code> and re-run <code>node HRP/inject-failures-into-report.js</code>.</p>
+        <!--ECOM_FAILED_REQUESTS-->
+        <p class="note" id="ecom-failed-placeholder">Waiting for post-run inject… If this remains after the runner finishes, check <code>ECOM/failed-requests.json</code> and re-run <code>node ECOM/inject-failures-into-report.js</code>.</p>
       </div>
     </div>
 
-    <footer>HRP k6 · ${reportKind} report · generated ${escapeHtml(formatDateTime(reportGeneratedAt))}</footer>
+    <footer>ECOM k6 · ${reportKind} report · generated ${escapeHtml(formatDateTime(reportGeneratedAt))}</footer>
   </div>
 
   <script>
     const d = ${JSON.stringify(chartData)};
+    const wrap = document.getElementById("endpointComparisonChartWrap");
     const ctx = document.getElementById("endpointComparisonChart");
     if (ctx && d.labels && d.labels.length) {
+      // Wide enough that Chart.js does not need to hide tick labels
+      if (wrap) wrap.style.minWidth = Math.max(900, d.labels.length * 56) + "px";
       new Chart(ctx, {
         type: "bar",
         data: {
@@ -836,13 +869,23 @@ export function buildHrpReport(data, opts) {
                 afterBody: function(items) {
                   const i = items[0] && items[0].dataIndex;
                   if (i == null) return "";
-                  return "Requests: " + (d.totals[i] || 0);
+                  const step = (d.steps && d.steps[i]) ? d.steps[i] : "";
+                  return ["Requests: " + (d.totals[i] || 0), step ? ("Step: " + step) : ""].filter(Boolean);
                 }
               }
             }
           },
           scales: {
-            x: { ticks: { color: "#cbd5e1", maxRotation: 55, minRotation: 30 }, grid: { color: "rgba(148,163,184,0.15)" } },
+            x: {
+              ticks: {
+                color: "#cbd5e1",
+                maxRotation: 70,
+                minRotation: 60,
+                autoSkip: false,
+                font: { size: 9 }
+              },
+              grid: { color: "rgba(148,163,184,0.15)" }
+            },
             y: { title: { display: true, text: "Seconds", color: "#cbd5e1" }, ticks: { color: "#cbd5e1" }, grid: { color: "rgba(148,163,184,0.15)" } },
             y1: { position: "right", title: { display: true, text: "Error %", color: "#cbd5e1" }, ticks: { color: "#cbd5e1" }, grid: { drawOnChartArea: false } }
           }
@@ -857,7 +900,7 @@ export function buildHrpReport(data, opts) {
 export function createHandleSummary(opts) {
   return function handleSummary(data) {
     return {
-      "report.html": buildHrpReport(data, opts),
+      "report.html": buildEcomReport(data, opts),
       "summary.json": JSON.stringify(data, null, 2),
       stdout: textSummary(data, { indent: " ", enableColors: true }),
     };

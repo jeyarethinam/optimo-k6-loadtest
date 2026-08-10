@@ -148,7 +148,7 @@ export function getAuditHistories(token, bookingId) {
 /**
  * Core HRP load step: PATCH booking with 50 public packages in one request.
  * Package IDs from HRP_PACKAGE_IDS / DEFAULT_PACKAGE_IDS.
- * startDates are resolved dynamically from each package's sessions (same idea as LA28 packageSelect).
+ * startDates are resolved dynamically from each package's sessions (same idea as ECOM packageSelect).
  */
 export function addFiftyPackages(token, bookingId, contactId, slotIndex = 0, eventName) {
   const packageIds = resolvePackageIds();

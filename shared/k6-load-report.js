@@ -1,6 +1,6 @@
 /**
- * WCC-only HTML report: teal hero banner, booking-model sub-tables (login / simple / complex), LA28-style metrics.
- * LA28 uses its own template in LA28/script.js — do not import this module from LA28.
+ * WCC-only HTML report: teal hero banner, booking-model sub-tables (login / simple / complex), ECOM-style metrics.
+ * ECOM uses its own template in ECOM/script.js — do not import this module from ECOM.
  */
 
 function readMetricValue(data, metricName, field, fallback = 0) {

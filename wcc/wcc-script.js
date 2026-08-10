@@ -80,7 +80,7 @@ const allocVuStride = (() => {
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 50;
 })();
 
-// Same gauge names as LA28 so the HTML report "Correlation IDs" section fills in on smoke (VU 1).
+// Same gauge names as ECOM so the HTML report "Correlation IDs" section fills in on smoke (VU 1).
 const smokeClientIdGauge = new Gauge("smoke_client_id");
 const smokeContactIdGauge = new Gauge("smoke_contact_id");
 const smokeBookingIdGauge = new Gauge("smoke_booking_id");

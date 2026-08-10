@@ -15,16 +15,16 @@ This document describes how failed requests are captured during the load test, w
 ### Workflow
 
 ```powershell
-# From LA28/: run load test and save all output to k6-run.log (overwrites each time)
-cd LA28
+# From ECOM/: run load test and save all output to k6-run.log (overwrites each time)
+cd ECOM
 k6 run --out json=metrics.json script.js -e TEST_MODE=peak 2>&1 | Tee-Object -FilePath k6-run.log
 
 # From repo root: then generate failed-requests.json and failed-requests.csv next to that log
 cd ..
-node extract-failures.js LA28/k6-run.log
+node extract-failures.js ECOM/k6-run.log
 ```
 
-Or with npm (runner writes `LA28/k6-run.log` and runs extraction under `LA28/`):
+Or with npm (runner writes `ECOM/k6-run.log` and runs extraction under `ECOM/`):
 
 ```powershell
 npm run peak

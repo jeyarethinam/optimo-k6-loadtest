@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "la28-optimo-k6-loadtest",
-    "name": "LA28 Optimo Load Test API",
-    "description": "All endpoints used by the LA28 k6 load test (`LA28/endpoints/*`).\n\n**Setup:** Run **Login** first. The test script saves `token` to collection variables. Use `{{base_url}}` to switch environments.",
+    "_postman_id": "ecom-optimo-k6-loadtest",
+    "name": "ECOM Optimo Load Test API",
+    "description": "All endpoints used by the ECOM k6 load test (`ECOM/endpoints/*`).\n\n**Confirmed ecom flow:** Package Select → Create Booking (with package with Stock allocated) in one POST.\n\n**Setup:** Run **Login** first. The test script saves `token` to collection variables. Use `{{base_url}}` to switch environments.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,9 +13,9 @@
     { "key": "contactId", "value": "" },
     { "key": "clientId", "value": "" },
     { "key": "bookingId", "value": "" },
-    { "key": "packageId", "value": "4130" },
-    { "key": "packageStartDate", "value": "2028-07-01T00:00:00" },
-    { "key": "packageEndDate", "value": "2028-07-31T23:59:59" },
+    { "key": "packageId", "value": "7663" },
+    { "key": "packageStartDate", "value": "2028-07-04T08:00:00" },
+    { "key": "packageEndDate", "value": "2028-07-04T17:00:00" },
     { "key": "paymentTermId", "value": "19" },
     { "key": "paymentTermDetailId", "value": "" },
     { "key": "invoiceId", "value": "" },
@@ -204,7 +204,7 @@
       "name": "Bookings",
       "item": [
         {
-          "name": "Create Booking",
+          "name": "Create Booking (with package with Stock allocated)",
           "event": [
             {
               "listen": "test",
@@ -225,10 +225,11 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"data\": {\n    \"relationships\": {\n      \"contact\": { \"data\": { \"id\": \"{{contactId}}\", \"type\": \"contact\" } },\n      \"bookingStatus\": { \"data\": { \"id\": \"81\", \"type\": \"bookingStatus\" } },\n      \"paymentTerm\": { \"data\": { \"id\": \"{{paymentTermId}}\", \"type\": \"paymentTerm\" } }\n    },\n    \"attributes\": {\n      \"salesChannelId\": {{salesChannelId}},\n      \"temporary\": true\n    },\n    \"type\": \"Booking\"\n  }\n}",
+              "raw": "{\n  \"data\": {\n    \"type\": \"Booking\",\n    \"attributes\": {\n      \"salesChannelId\": {{salesChannelId}},\n      \"alternativeBookingRef\": \"\",\n      \"externalBookingId\": \"\"\n    },\n    \"relationships\": {\n      \"priceConcession\": { \"data\": { \"id\": \"8\", \"type\": \"priceConcession\" } },\n      \"bookingPackages\": { \"data\": [{ \"id\": \"-1\", \"type\": \"bookingPackage\" }] },\n      \"contact\": { \"data\": { \"id\": \"{{contactId}}\", \"type\": \"contact\" } }\n    }\n  },\n  \"included\": [\n    {\n      \"type\": \"bookingPackage\",\n      \"id\": \"-1\",\n      \"attributes\": {\n        \"quantity\": 1,\n        \"startDate\": \"{{packageStartDate}}\",\n        \"endDate\": \"{{packageEndDate}}\"\n      },\n      \"relationships\": {\n        \"package\": { \"data\": { \"id\": \"{{packageId}}\", \"type\": \"PublicPackage\" } }\n      }\n    }\n  ]\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "url": "{{base_url}}/api/V4.1/bookings"
+            "url": "{{base_url}}/api/v4.1/bookings",
+            "description": "Ecom confirmed booking: package + stock allocation in one POST. Run Package Select first for session dates."
           }
         },
         {

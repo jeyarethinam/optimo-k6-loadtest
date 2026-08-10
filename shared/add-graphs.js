@@ -5,13 +5,13 @@
  * Usage:
  *   node shared/add-graphs.js [targetDir]
  *
- * targetDir: folder containing metrics.json + report.html (default: ./LA28)
+ * targetDir: folder containing metrics.json + report.html (default: ./ECOM)
  */
 const fs = require("fs");
 const path = require("path");
 
 const REPO_ROOT = path.join(__dirname, "..");
-const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(REPO_ROOT, "LA28");
+const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(REPO_ROOT, "ECOM");
 const TEST_MODE = process.argv[3] || process.env.TEST_MODE || process.env.K6_TEST_MODE || "";
 const METRICS_FILE = path.join(TARGET_DIR, "metrics.json");
 const REPORT_FILES = [
@@ -374,7 +374,7 @@ function main() {
   const series = points ? bucketSeries(points) : null;
   if (!series || series.labels.length === 0) {
     console.log("No metrics.json or no data points in", TARGET_DIR);
-    console.log("Run k6 with cwd = that folder, e.g.: cd LA28 && k6 run --out json=metrics.json script.js -e TEST_MODE=smoke");
+    console.log("Run k6 with cwd = that folder, e.g.: cd ECOM && k6 run --out json=metrics.json script.js -e TEST_MODE=smoke");
     process.exitCode = 1;
     return;
   }

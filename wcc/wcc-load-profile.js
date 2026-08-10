@@ -1,5 +1,5 @@
 /**
- * WCC-only load shapes (LA28 `load-profile.js` is unchanged).
+ * WCC-only load shapes (ECOM `load-profile.js` is unchanged).
  *
  * For non-smoke modes, `wcc-script.js` assigns ~80% of VUs to the simple day-package path and ~20% to the
  * complex recurring path when WCC_FLOW is `both` (default). Use WCC_FLOW=simple|complex to force 100%.
