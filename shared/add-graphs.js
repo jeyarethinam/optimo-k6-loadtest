@@ -5,7 +5,8 @@
  * Usage:
  *   node shared/add-graphs.js [targetDir]
  *
- * targetDir: folder containing metrics.json + report.html (default: ./LA28)
+ * targetDir: folder containing metrics.json + report.html (default: ./LA28).
+ * Also injects into the profile-named HTML listed in last-report.json (e.g. LA28-smoke-YYYYMMDD_HHMMSS.html).
  */
 const fs = require("fs");
 const path = require("path");
@@ -13,11 +14,22 @@ const path = require("path");
 const REPO_ROOT = path.join(__dirname, "..");
 const TARGET_DIR = process.argv[2] ? path.resolve(process.argv[2]) : path.join(REPO_ROOT, "LA28");
 const METRICS_FILE = path.join(TARGET_DIR, "metrics.json");
-const REPORT_FILES = [
-  path.join(TARGET_DIR, "report.html"),
-  path.join(TARGET_DIR, "K6-report-Load-100VU.html"),
-];
+const LAST_REPORT_FILE = path.join(TARGET_DIR, "last-report.json");
 const BUCKET_SEC = 1;
+
+function listReportFiles(dir) {
+  const files = [path.join(dir, "report.html")];
+  const lastReportPath = path.join(dir, "last-report.json");
+  if (!fs.existsSync(lastReportPath)) return files;
+  try {
+    const meta = JSON.parse(fs.readFileSync(lastReportPath, "utf8"));
+    if (meta && meta.report) {
+      const named = path.join(dir, path.basename(String(meta.report)));
+      if (named !== files[0]) files.push(named);
+    }
+  } catch (_) {}
+  return files;
+}
 
 function percentile(sortedArr, p) {
   if (!sortedArr || sortedArr.length === 0) return null;
@@ -336,14 +348,23 @@ function main() {
   }
   const summary = computeSummary(series, points);
   const chartsHtml = buildChartsSection(series, summary);
+  const reportFiles = listReportFiles(TARGET_DIR);
   const updated = [];
-  for (const file of REPORT_FILES) {
+  for (const file of reportFiles) {
     if (injectChartsIntoReport(file, chartsHtml)) {
       updated.push(path.basename(file));
     }
   }
   if (updated.length > 0) {
     console.log(`Charts (VU, req/s, avg/percentiles, error %, performance indicators) added to: ${updated.join(", ")}.`);
+    try {
+      const meta = JSON.parse(fs.readFileSync(LAST_REPORT_FILE, "utf8"));
+      if (meta && meta.report) {
+        const namedPath = path.join(TARGET_DIR, path.basename(String(meta.report)));
+        const profileBit = meta.label && meta.profile ? `${meta.label} (${meta.profile})` : meta.profile || "";
+        console.log(`Named report: ${namedPath}${profileBit ? `  [${profileBit}]` : ""}`);
+      }
+    } catch (_) {}
   } else {
     console.log("No supported report file found for chart injection.");
     process.exitCode = 1;

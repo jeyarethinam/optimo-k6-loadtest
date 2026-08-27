@@ -27,7 +27,7 @@ import {
 } from "./endpoints/booking.js";
 import { createPayment, paymentSelect, paymentCreditCardTypes } from "./endpoints/payment.js";
 import { clientCategory, clientType, clientTitle, communicationTypes, country, createClient } from "./endpoints/customers.js";
-import { loadProfile } from "./load-profile.js";
+import { resolveProfile } from "./load-profile.js";
 import { retry, UNAUTHORIZED_MSG, logErrorReport, logFailedRequest } from "../shared/helpers.js";
 import { textSummary } from "https://jslib.k6.io/k6-summary/0.0.1/index.js";
 
@@ -52,13 +52,13 @@ const endpointOrder = [
 const flowStepOrder = [
   "Login", "ClientCategory", "ClientType", "ClientTitle", "CommunicationTypes", "Country", "CreateClient", "GetContact",
   "SearchContactByEmail", "FindPriorityAccessBooking", "CreateBooking", "UpdateBookingIsPA", "SearchBookingByEmail",
-  "PackageSelect1", "PackageSelect2", "AddPackage", "BookingSelectA", "GetBookingFullDetails1", "PackageSelect3",
-  "PackageSelect4", "BookingSelectB", "GetBookingFullDetails2", "SearchContactByEmailEncoded", "GetContactWithInvoiceAddress1",
+  "PackageSelect1", "AddPackage", "BookingSelectA", "GetBookingFullDetails1",
+  "BookingSelectB", "GetBookingFullDetails2", "SearchContactByEmailEncoded", "GetContactWithInvoiceAddress1",
   "UpdateClient", "GetBookingFullDetails3", "GetBookingItems", "GetBookingFullDetails4", "UpdateBookingWithContact", "GetBookingFullDetails5",
-  "GetContactWithInvoiceAddress2", "PackageSelect5", "PackageSelect6", "PackageSelect7", "PackageSelect8", "InvoiceCreate",
+  "GetContactWithInvoiceAddress2", "InvoiceCreate",
   "GetContactWithInvoiceAddress3", "GetBookingFullDetails6", "GetBookingFullDetails7", "PaymentSelect", "PaymentCreditCardTypes",
   "GetBookingFullDetails8", "BookingInvoices", "CreatePayment", "ConfirmBooking", "EmailTemplate", "GenerateEmail",
-  "SendEmail", "PackageSelect9", "PackageSelect10", "GetInvoiceById"
+  "SendEmail", "GetInvoiceById"
 ];
 
 // Smoke correlation IDs to show in the generated HTML report.
@@ -76,19 +76,11 @@ function thinkTime() {
   sleep(delay);
 }
 
-function getModeOptions(testMode) {
-  if (testMode === "peak200") return loadProfile.peak200;
-  if (testMode === "peak") return loadProfile.peak;
-  if (testMode === "peak100_sustained") return loadProfile.peak100_sustained;
-  if (testMode === "peak100_10m") return loadProfile.peak100_10m;
-  if (testMode === "peak100_constant_10m") return loadProfile.peak100_constant_10m;
-  if (testMode === "peak500_10m") return loadProfile.peak500_10m;
-  if (testMode === "peak500_constant_10m") return loadProfile.peak500_constant_10m;
-  if (testMode === "peak20_10m") return loadProfile.peak20_10m;
-  return loadProfile.smoke;
-}
-
-const baseOptions = getModeOptions(mode);
+const resolvedProfile = resolveProfile(mode);
+const baseOptions = resolvedProfile.options;
+console.log(
+  `Load profile: ${resolvedProfile.label} (${resolvedProfile.key}) — ${resolvedProfile.shape}`
+);
 const hasPeakSteadyScenario = !!(baseOptions && baseOptions.scenarios && baseOptions.scenarios.peak_steady);
 export const options = {
   ...baseOptions,
@@ -409,8 +401,7 @@ function countBreachedThresholds(data) {
   return breached;
 }
 
-function buildCustomReport(data) {
-  const reportGeneratedAt = new Date();
+function buildCustomReport(data, reportGeneratedAt = new Date()) {
   const testDurationMs = data?.state?.testRunDurationMs || 0;
   const testEnd = reportGeneratedAt;
   const testStart = new Date(testEnd.getTime() - testDurationMs);
@@ -462,11 +453,17 @@ function buildCustomReport(data) {
   };
   const correlationIdsSectionHtml = buildCorrelationIdsSection(data);
 
+  const profileTitle = `${resolvedProfile.label} (${resolvedProfile.key})`;
+  const safeProfileLabel = escapeHtml(resolvedProfile.label);
+  const safeProfileKey = escapeHtml(resolvedProfile.key);
+  const safeProfileSummary = escapeHtml(resolvedProfile.summary);
+  const safeProfileShape = escapeHtml(resolvedProfile.shape);
+
   return `<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>k6 Performance Report</title>
+  <title>LA28 · ${escapeHtml(profileTitle)} · k6 Report</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f5f7fb; color: #1f2937; }
@@ -497,11 +494,14 @@ function buildCustomReport(data) {
   </style>
 </head>
 <body>
-  <h1>Load Test Report</h1>
+  <h1>LA28 · ${safeProfileLabel} Report</h1>
+  <p style="margin:0 0 14px 0;color:#475569;font-size:14px;line-height:1.5">${safeProfileSummary}</p>
   <div class="meta">
+    <div class="meta-item"><b>Profile:</b> ${safeProfileLabel} (<code>${safeProfileKey}</code>)</div>
+    <div class="meta-item"><b>Load shape:</b> ${safeProfileShape}</div>
+    <div class="meta-item"><b>Environment:</b> ${environmentName}</div>
     <div class="meta-item"><b>Report Generated:</b> ${formatDateTime(reportGeneratedAt)}</div>
     <div class="meta-item"><b>Run ID:</b> ${runId}</div>
-    <div class="meta-item"><b>Environment / Mode:</b> ${environmentName} / ${mode}</div>
     <div class="meta-item"><b>Test Start:</b> ${formatDateTime(testStart)}</div>
     <div class="meta-item"><b>Test End:</b> ${formatDateTime(testEnd)}</div>
     <div class="meta-item"><b>Total Test Duration:</b> ${formatDuration(testDurationMs)}</div>
@@ -529,6 +529,8 @@ function buildCustomReport(data) {
       <div class="mini"><div class="k">Test Start</div><div class="v" style="font-size:14px">${formatDateTime(testStart)}</div></div>
       <div class="mini"><div class="k">Test End</div><div class="v" style="font-size:14px">${formatDateTime(testEnd)}</div></div>
       <div class="mini"><div class="k">Duration</div><div class="v">${formatDuration(testDurationMs)}</div></div>
+      <div class="mini"><div class="k">Profile</div><div class="v" style="font-size:14px">${safeProfileLabel} (${safeProfileKey})</div></div>
+      <div class="mini"><div class="k">Load shape</div><div class="v" style="font-size:14px">${safeProfileShape}</div></div>
       <div class="mini"><div class="k">Run ID</div><div class="v" style="font-size:14px">${runId}</div></div>
     </div>
   </div>
@@ -588,11 +590,41 @@ function buildCustomReport(data) {
 </html>`;
 }
 
+function artifactBaseName(generatedAt) {
+  const runId = formatRunId(generatedAt);
+  const safeMode = String(resolvedProfile.key || "smoke").replace(/[^a-zA-Z0-9._-]+/g, "-");
+  return `LA28-${safeMode}-${runId}`;
+}
+
 export function handleSummary(data) {
+  const generatedAt = new Date();
+  const html = buildCustomReport(data, generatedAt);
+  const json = JSON.stringify(data, null, 2);
+  const base = artifactBaseName(generatedAt);
+  const reportFile = `${base}.html`;
+  const summaryFile = `${base}-summary.json`;
+  const lastReport = JSON.stringify(
+    {
+      suite: "LA28",
+      profile: resolvedProfile.key,
+      label: resolvedProfile.label,
+      shape: resolvedProfile.shape,
+      report: reportFile,
+      summary: summaryFile,
+      generatedAt: generatedAt.toISOString(),
+    },
+    null,
+    2
+  );
   return {
-    "report.html": buildCustomReport(data),
-    "summary.json": JSON.stringify(data, null, 2),
-    stdout: textSummary(data, { indent: " ", enableColors: true }),
+    "report.html": html,
+    [reportFile]: html,
+    "summary.json": json,
+    [summaryFile]: json,
+    "last-report.json": lastReport,
+    stdout:
+      `\nHTML report: ${reportFile}\nLatest copy: report.html\nProfile: ${resolvedProfile.label} (${resolvedProfile.key}) — ${resolvedProfile.shape}\n\n` +
+      textSummary(data, { indent: " ", enableColors: true }),
   };
 }
 
@@ -642,20 +674,29 @@ function logUnhandledFlowError(error, ctx = {}) {
   });
 }
 
-export default function () {
+/**
+ * One login for the whole test. The token is passed to every VU so peak/load
+ * does not hit /users/login once per user. 401s still re-login that VU only.
+ */
+export function setup() {
+  const token = ENABLE_RETRIES ? retry(() => login(), { attempts: 3, delayMs: 1000 }) : login();
+  if (!token) throw new Error("setup: login token not found");
+  console.log("Shared login token acquired — all VUs will reuse this token");
+  return { token };
+}
+
+export default function (data) {
   let authRetries = 0;
   let done = false;
   const ctx = {
+    token: data && data.token,
     contactId: __ENV.CONTACT_ID || null,
     contactEmail: __ENV.CONTACT_EMAIL || null,
   };
+  if (!ctx.token) throw new Error("shared login token missing — setup() must return a token");
 
   while (!done) {
     try {
-      group("001 Login", () => {
-        ctx.token = track("Login", () => (ENABLE_RETRIES ? retry(() => login(), { attempts: 3, delayMs: 1000 }) : login()));
-      });
-
       group("002 ClientCategory", () => { ctx.clientCategoryId = track("ClientCategory", () => clientCategory(ctx.token)); });
       group("003 ClientType", () => { ctx.clientTypeId = track("ClientType", () => clientType(ctx.token)); });
       group("004 ClientTitle", () => { ctx.clientTitleId = track("ClientTitle", () => clientTitle(ctx.token)?.titleId); });
@@ -701,15 +742,12 @@ export default function () {
       console.log(`SMOKE_IDS bookingId=${ctx.bookingId ?? "(null)"} clientId=${ctx.rClientId ?? "(null)"} contactId=${ctx.contactId ?? "(null)"} email=${ctx.contactEmail ?? "(null)"} vu=${__VU ?? "(n/a)"} iter=${__ITER ?? "(n/a)"}`);
 
       group("014 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect1", () => packageSelect(ctx.token))); });
-      group("015 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect2", () => packageSelect(ctx.token))); });
       group("016 BookingsPatch- Package adding", () => {
         const out = track("AddPackage", () => addPackage(ctx.token, ctx.bookingId, ctx.packageId, ctx.pStartDate, ctx.pEndDate));
         ctx.paymentTermDetailId = out?.paymentTermDetailId || ctx.paymentTermDetailId;
       });
       group("017 Bookings-Select", () => { Object.assign(ctx, track("BookingSelectA", () => bookingSelect(ctx.token, ctx.bookingId))); });
       group("018 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails1", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
-      group("019 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect3", () => packageSelect(ctx.token))); });
-      group("020 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect4", () => packageSelect(ctx.token))); });
       group("021 Booking Select", () => { Object.assign(ctx, track("BookingSelectB", () => bookingSelect(ctx.token, ctx.bookingId))); });
       group("022 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails2", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
 
@@ -722,11 +760,6 @@ export default function () {
       group("029 Update Booking with contact", () => { track("UpdateBookingWithContact", () => addClient(ctx.token, ctx.bookingId, ctx.contactId)); });
       group("030 Get Booking Full Details", () => { Object.assign(ctx, track("GetBookingFullDetails5", () => getBookingFullDetails(ctx.token, ctx.bookingId))); });
       group("031 Get Contact With Invoice Address", () => { Object.assign(ctx, track("GetContactWithInvoiceAddress2", () => getContactWithInvoiceAddress(ctx.token, ctx.contactId))); });
-
-      group("032 Package_Select 1", () => { Object.assign(ctx, track("PackageSelect5", () => packageSelect(ctx.token))); });
-      group("033 Package_Select 2", () => { Object.assign(ctx, track("PackageSelect6", () => packageSelect(ctx.token))); });
-      group("034 Package_Select 3", () => { Object.assign(ctx, track("PackageSelect7", () => packageSelect(ctx.token))); });
-      group("035 Package_Select 4", () => { Object.assign(ctx, track("PackageSelect8", () => packageSelect(ctx.token))); });
 
       group("036 InvoiceCreate", () => { ctx.invoiceId = track("InvoiceCreate", () => invoiceCreate(ctx.token, ctx.bookingId, ctx.paymentTermDetailId)); });
       group("037 Get Contact With Invoice Address", () => { Object.assign(ctx, track("GetContactWithInvoiceAddress3", () => getContactWithInvoiceAddress(ctx.token, ctx.contactId))); });
@@ -750,8 +783,6 @@ export default function () {
       if (__ENV.ECOM_BOOKING_CONFIRMATION_EMAIL_TEMPLATE) ctx.templateId = __ENV.ECOM_BOOKING_CONFIRMATION_EMAIL_TEMPLATE;
       group("047 BookingEmailGenerate", () => { ctx.emailId = track("GenerateEmail", () => generateEmail(ctx.token, ctx.bookingId, ctx.templateId)?.emailId); });
       group("048 BookingEmailSend", () => { track("SendEmail", () => sendEmail(ctx.token, ctx.bookingId, ctx.emailId)); });
-      group("049 Package_Select 1", () => { track("PackageSelect9", () => packageSelect(ctx.token)); });
-      group("050 Package_Select 2", () => { track("PackageSelect10", () => packageSelect(ctx.token)); });
       group("051 Get Invoice By ID", () => { track("GetInvoiceById", () => getInvoiceById(ctx.token, ctx.invoiceId)); });
 
       done = true;

@@ -1,5 +1,6 @@
 /**
- * LA28 k6 runner: artifacts stay under ./LA28/ (report.html, summary.json, metrics.json, k6-run.log, failed-requests.*).
+ * LA28 k6 runner: artifacts stay under ./LA28/
+ * (report.html plus profile-named LA28-<profile>-<timestamp>.html, summary.json, metrics.json, k6-run.log, failed-requests.*).
  */
 const { spawn } = require("child_process");
 const { spawnSync } = require("child_process");

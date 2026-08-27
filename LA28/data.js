@@ -26,13 +26,13 @@
 // };
 
 
-// export const BASE_URL =
-//   __ENV.BASE_URL || "https://optimodevv5-apis-a2a8g7ehdma3h0df.eastus-01.azurewebsites.net/restapi";
+export const BASE_URL =
+  __ENV.BASE_URL || "https://optimodevv5-apis-a2a8g7ehdma3h0df.eastus-01.azurewebsites.net/restapi";
 
-// export const LOGIN_PAYLOAD = {
-//     username: "<redacted>",
-//     password: "<redacted>"
-// };
+export const LOGIN_PAYLOAD = {
+    username: "optimo",
+    password: "28N@pD3jTaz"
+};
 
 
 // export const BASE_URL =
@@ -44,10 +44,10 @@
 // };
 
 
-export const BASE_URL =
-  __ENV.BASE_URL;
+// export const BASE_URL =
+//   __ENV.BASE_URL;
 
-export const LOGIN_PAYLOAD = {
-  username: __ENV.USERNAME,
-  password: __ENV.PASSWORD,
-};
+// export const LOGIN_PAYLOAD = {
+//   username: __ENV.USERNAME,
+//   password: __ENV.PASSWORD,
+// };

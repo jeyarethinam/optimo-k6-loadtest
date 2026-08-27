@@ -7,6 +7,9 @@ LA28/k6-run.log
 LA28/metrics.json
 LA28/report.html
 LA28/summary.json
+LA28/last-report.json
+LA28/LA28-*.html
+LA28/LA28-*-summary.json
 LA28/failed-requests.json
 LA28/failed-requests.csv
 LA28/error-report.json
@@ -16,6 +19,9 @@ wcc/k6-run.log
 wcc/metrics.json
 wcc/report.html
 wcc/summary.json
+wcc/last-report.json
+wcc/WCC-*.html
+wcc/WCC-*-summary.json
 wcc/failed-requests.json
 wcc/failed-requests.csv
 wcc/error-report.json

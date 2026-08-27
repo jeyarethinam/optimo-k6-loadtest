@@ -44,7 +44,9 @@ export function packageSelect(token) {
   // const ids = envIds.length ? envIds : [3016];uat
   // const ids = envIds.length ? envIds : [4129,4130,4132,4133,4134,4135,4136,4137,4138,4139];
   // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
-  const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
+  const ids = envIds.length ? envIds : [ 7653, 7652, 7651, 7650, 7649, 7648, 7647, 7646, 7645, 7644];//optimodevv5new
+
+  // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
   const selectedId = ids[Math.floor(Math.random() * ids.length)];
   const res = http.get(`${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`, getHeaders(token));
   validate(res, "Package Select", { packageId: selectedId });

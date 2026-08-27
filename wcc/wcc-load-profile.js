@@ -6,6 +6,8 @@
  */
 
 export const wccLoadProfile = {
+  // Smoke: 1 VU × 1 iteration — full simple then complex booking (not a load test).
+  // npm run smoke:wcc
   smoke: {
     vus: 1,
     iterations: 1,

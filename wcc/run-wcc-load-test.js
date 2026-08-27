@@ -1,6 +1,6 @@
 /**
  * WCC k6 runner: spawns `k6 run wcc-script.js` (not Postman). Artifacts under ./wcc/
- * (report.html, summary.json, metrics.json, k6-run.log, failed-requests.*).
+ * (report.html plus profile-named WCC-<profile>-<timestamp>.html, summary.json, metrics.json, k6-run.log, failed-requests.*).
  */
 const { spawn } = require("child_process");
 const fs = require("fs");
