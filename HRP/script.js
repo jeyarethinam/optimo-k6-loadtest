@@ -27,8 +27,15 @@ const THINK_TIME_MIN_S = Number(__ENV.THINK_TIME_MIN_S || "0.2");
 const THINK_TIME_MAX_S = Number(__ENV.THINK_TIME_MAX_S || "1.0");
 const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || "5000");
 const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || "15000");
-const SKIP_CANCEL = String(__ENV.HRP_SKIP_CANCEL || "").toLowerCase() === "true" || __ENV.HRP_SKIP_CANCEL === "1";
-const SKIP_UNSUBMIT = String(__ENV.HRP_SKIP_UNSUBMIT || "").toLowerCase() === "true" || __ENV.HRP_SKIP_UNSUBMIT === "1";
+// Temporarily skip unsubmit + cancel by default; set HRP_SKIP_*=false to re-enable.
+const SKIP_CANCEL =
+  __ENV.HRP_SKIP_CANCEL === undefined || __ENV.HRP_SKIP_CANCEL === ""
+    ? true
+    : String(__ENV.HRP_SKIP_CANCEL).toLowerCase() === "true" || __ENV.HRP_SKIP_CANCEL === "1";
+const SKIP_UNSUBMIT =
+  __ENV.HRP_SKIP_UNSUBMIT === undefined || __ENV.HRP_SKIP_UNSUBMIT === ""
+    ? true
+    : String(__ENV.HRP_SKIP_UNSUBMIT).toLowerCase() === "true" || __ENV.HRP_SKIP_UNSUBMIT === "1";
 const SKIP_AUDIT =
   __ENV.HRP_SKIP_AUDIT === undefined || __ENV.HRP_SKIP_AUDIT === ""
     ? true

@@ -7,9 +7,9 @@ module.exports = {
   name: "peak500_10m",
   stages: [
     { duration: "2m", target: 100 },
+    { duration: "2m", target: 200 },
     { duration: "2m", target: 500 },
-    { duration: "2m", target: 500 },
-    { duration: "2m", target: 100 },
+    { duration: "2m", target: 200 },
     { duration: "2m", target: 100 },
   ],
 };

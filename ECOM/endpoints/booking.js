@@ -110,14 +110,17 @@ export function createBooking(token, contactId, packageId, pStartDate, pEndDate)
       endDate = sess.pEndDate || endDate;
     }
 
+    const bookingStatusId = String(__ENV.ECOM_BOOKING_STATUS_ID || "74");
     const relationships = {
       priceConcession: { data: { id: priceConcessionId, type: "priceConcession" } },
       bookingPackages: { data: [{ id: "-1", type: "bookingPackage" }] },
+      bookingStatus: { data: { id: bookingStatusId, type: "bookingStatus" } },
     };
     if (contactId) {
       relationships.contact = { data: { id: String(contactId), type: "contact" } };
     }
 
+    const poReference = __ENV.PO_REFERENCE || `LT-Optimo-${__VU}-${__ITER}`;
     const payload = {
       data: {
         type: "Booking",
@@ -125,6 +128,7 @@ export function createBooking(token, contactId, packageId, pStartDate, pEndDate)
           salesChannelId,
           alternativeBookingRef: "",
           externalBookingId: "",
+          poReference,
         },
         relationships,
       },
@@ -194,14 +198,23 @@ export function bookingSelect(token, bookingId) {
  * (or PACKAGE_IDS env), then loads session start/end for the create POST.
  */
 export function packageSelect(token, packageId = null) {
-  const selectedId =
-    packageId != null && packageId !== ""
-      ? String(packageId)
-      : pickRandomPackageId();
-  const res = http.get(
-    `${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`,
-    getHeaders(token)
-  );
+  const envIds = (__ENV.PACKAGE_IDS || "").split(",").map((x) => x.trim()).filter(Boolean);
+  // const ids = envIds.length ? envIds : [5280,5281,5282,5283,5284,5285,5286,5287,5288,5289];//uat 
+  // const ids = envIds.length ? envIds : [5280,5281,5282,5283,5284,5285,5286,5287,5288,5289];//uat 
+  // const ids = envIds.length ? envIds : [5423,5422,5421,5420,5419,5418,5417,5416,5415,5414];//uat NEW
+  // const ids = envIds.length ? envIds : [3016];//UAT
+  // const ids = envIds.length ? envIds : [4130,4129,4128,4127,4126,4125,4124,4123,4122,4121];//optimodevv5
+  // const ids = envIds.length ? envIds : [4124];//optimodevv5
+  // const ids = envIds.length ? envIds : [7415,7414,7413,7412,7411,7410,7409,7408,7407,7406];//play
+  // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
+  // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
+    const ids = envIds.length ? envIds : [9062,9070,9071,9068,9067,9069,9066,9065,9065,9063]; // Prod Clone 
+    // const ids = envIds.length ? envIds : [9071]; // Prod Clone 
+  // const ids = envIds.length ? envIds : [ 7643, 7642, 7641, 7640, 7639, 7638, 7637, 7636, 7635, 7634];//optimodevv5new
+  const selectedId = packageId != null && packageId !== ""
+    ? String(packageId)
+    : String(ids[Math.floor(Math.random() * ids.length)]);
+  const res = http.get(`${BASE_URL}/api/V4.1/products/packages/${selectedId}?include=PublicPackage.PackageSessions`, getHeaders(token));
   validate(res, "Package Select", { packageId: selectedId });
   const body = res.json() || {};
   const included = Array.isArray(body?.included) ? body.included : [];
@@ -599,21 +612,6 @@ export function findPriorityAccessBooking(token, email) {
   const body = res.json() || {};
   const row = Array.isArray(body?.data) ? body.data[0] : body?.data;
   return row?.id || null;
-}
-
-export function updateBookingPoReference(token, bookingId) {
-  const poReference = __ENV.PO_REFERENCE || `LT-Optimo-${bookingId}-${__VU}-${__ITER}`;
-  const payload = {
-    data: {
-      type: "booking",
-      attributes: { poReference },
-      relationships: {},
-      id: bookingId,
-    },
-  };
-  const res = http.patch(`${BASE_URL}/api/V4.1/bookings/${bookingId}`, JSON.stringify(payload), getHeaders(token));
-  validate(res, "Update Booking PO Reference", { bookingId }, { requestBody: payload });
-  return true;
 }
 
 export function getBookingFullDetails(token, bookingId) {

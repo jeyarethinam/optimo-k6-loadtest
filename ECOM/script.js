@@ -19,7 +19,6 @@ import {
   searchContactByEmail,
   searchBookingByEmail,
   findPriorityAccessBooking,
-  updateBookingPoReference,
   getBookingFullDetails,
   getBookingItems,
   getContactWithInvoiceAddress,
@@ -39,8 +38,11 @@ const RUN_STARTED_AT = new Date();
 const ENABLE_RETRIES = true;
 const ENABLE_TOKEN_REFRESH_ON_401 = true;
 const MAX_401_RETRIES = 3;
+const THINK_TIME_ENABLED = (__ENV.THINK_TIME_ENABLED ?? "1") === "1";
 const THINK_TIME_MIN_S = Number(__ENV.THINK_TIME_MIN_S || "0.2");
 const THINK_TIME_MAX_S = Number(__ENV.THINK_TIME_MAX_S || "1.0");
+/** Pause (seconds) after a full booking flow before the VU starts the next iteration. */
+const ITERATION_DELAY_S = Number(__ENV.ITERATION_DELAY_S || "0");
 const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || "2000");
 const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || "4000");
 /** Skip Find Priority Access Booking (redundant — CreateBooking always runs next). Set to "0" to re-enable. */
@@ -48,7 +50,7 @@ const SKIP_FIND_PRIORITY_ACCESS_BOOKING = (__ENV.SKIP_FIND_PRIORITY_ACCESS_BOOKI
 const endpointOrder = [
   "Login", "Client Category", "Client Type", "Client Title", "Communication Types", "Country", "Create Client",
   "Get Contact", "Search Contact By Email", "Find Priority Access Booking", "Package Select",
-  "Create Booking (with package with Stock allocated)", "Update Booking PO Reference",
+  "Create Booking (with package with Stock allocated)",
   "Search Booking By Email", "Booking Select", "Get Booking Full Details",
   "Get Contact With Invoice Address", "Update Client", "Get Booking Items", "Add Client",
   "Booking Status List", "Confirm Booking", "Invoice Create",
@@ -57,7 +59,7 @@ const endpointOrder = [
 ];
 const flowStepOrder = [
   "Login", "ClientCategory", "ClientType", "ClientTitle", "CommunicationTypes", "Country", "CreateClient", "GetContact",
-  "SearchContactByEmail", "FindPriorityAccessBooking", "PackageSelect", "CreateBooking", "UpdateBookingPoReference",
+  "SearchContactByEmail", "FindPriorityAccessBooking", "PackageSelect", "CreateBooking",
   "SearchBookingByEmail", "BookingSelectA", "GetBookingFullDetails1", "BookingSelectB", "GetBookingFullDetails2",
   "SearchContactByEmailEncoded", "GetContactWithInvoiceAddress1",
   "UpdateClient", "GetBookingFullDetails3", "GetBookingItems", "GetBookingFullDetails4", "UpdateBookingWithContact", "GetBookingFullDetails5",
@@ -74,12 +76,18 @@ const smokeContactIdGauge = new Gauge("smoke_contact_id");
 const smokeBookingIdGauge = new Gauge("smoke_booking_id");
 
 function thinkTime() {
+  if (!THINK_TIME_ENABLED) return;
   const min = Number.isFinite(THINK_TIME_MIN_S) ? THINK_TIME_MIN_S : 0.2;
   const max = Number.isFinite(THINK_TIME_MAX_S) ? THINK_TIME_MAX_S : 1.0;
   const high = Math.max(min, max);
   const low = Math.min(min, max);
   const delay = low + Math.random() * (high - low);
-  sleep(delay);
+  if (delay > 0) sleep(delay);
+}
+
+function iterationDelay() {
+  const delay = Number.isFinite(ITERATION_DELAY_S) ? ITERATION_DELAY_S : 0;
+  if (delay > 0) sleep(delay);
 }
 
 function getModeOptions(testMode) {
@@ -87,11 +95,16 @@ function getModeOptions(testMode) {
   if (testMode === "peak300" || testMode === "peak300_10m") return loadProfile.peak300;
   if (testMode === "peak400") return loadProfile.peak400;
   if (testMode === "peak") return loadProfile.peak;
+  if (testMode === "peak10" || testMode === "peak10_1m") return loadProfile.peak10_1m;
+  if (testMode === "peak50" || testMode === "peak50_10m") return loadProfile.peak50;
+  if (testMode === "peak100" || testMode === "peak100_ui") return loadProfile.peak100;
+  if (testMode === "peak120") return loadProfile.peak120;
   if (testMode === "peak100_sustained") return loadProfile.peak100_sustained;
   if (testMode === "peak100_10m") return loadProfile.peak100_10m;
   if (testMode === "peak100_constant_10m") return loadProfile.peak100_constant_10m;
   if (testMode === "peak500" || testMode === "peak500_10m") return loadProfile.peak500_10m;
   if (testMode === "peak500_constant_10m") return loadProfile.peak500_constant_10m;
+  if (testMode === "peak1000" || testMode === "peak1000_10m") return loadProfile.peak1000;
   if (testMode === "peak50_5m") return loadProfile.peak50_5m;
   if (testMode === "peak20_10m") return loadProfile.peak20_10m;
   if (testMode === "smoke") return loadProfile.smoke;
@@ -252,8 +265,7 @@ export default function (setupData) {
         ctx.pStartDate = out?.pStartDate || ctx.pStartDate;
         ctx.pEndDate = out?.pEndDate || ctx.pEndDate;
       });
-      group("013 Update Booking PO Reference", () => { track("UpdateBookingPoReference", () => updateBookingPoReference(ctx.token, ctx.bookingId)); });
-      group("014 Search Booking By Email", () => { ctx.bookingId = track("SearchBookingByEmail", () => searchBookingByEmail(ctx.token, ctx.contactEmail)) || ctx.bookingId; });
+      group("013 Search Booking By Email", () => { ctx.bookingId = track("SearchBookingByEmail", () => searchBookingByEmail(ctx.token, ctx.contactEmail)) || ctx.bookingId; });
       if (!ctx.bookingId) throw new Error("booking_id correlation failed after create/search booking");
       if (__VU === 1) {
         const bId = Number(ctx.bookingId ?? 0);
@@ -318,6 +330,7 @@ export default function (setupData) {
       group("041 BookingEmailSend", () => { track("SendEmail", () => sendEmail(ctx.token, ctx.bookingId, ctx.emailId)); });
       group("042 Get Invoice By ID", () => { track("GetInvoiceById", () => getInvoiceById(ctx.token, ctx.invoiceId)); });
 
+      iterationDelay();
       done = true;
     } catch (e) {
       if (ENABLE_TOKEN_REFRESH_ON_401 && e.message === UNAUTHORIZED_MSG && authRetries < MAX_401_RETRIES) {

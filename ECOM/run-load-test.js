@@ -53,6 +53,10 @@ pushEnv(k6Args, "ENV_NAME", process.env.ENV_NAME || process.env.ENV);
   "ECOM_SALES_CHANNEL_ID",
   "CONTACT_ID",
   "CONTACT_EMAIL",
+  "THINK_TIME_ENABLED",
+  "THINK_TIME_MIN_S",
+  "THINK_TIME_MAX_S",
+  "ITERATION_DELAY_S",
 ].forEach((k) => pushEnv(k6Args, k, process.env[k]));
 
 function fileExists(p) {

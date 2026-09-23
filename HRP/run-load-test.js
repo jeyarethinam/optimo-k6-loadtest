@@ -2,7 +2,7 @@
  * HRP k6 runner: artifacts under ./HRP/
  * - report.html / summary.json = latest run (working copies)
  * - report_YYYYMMDD_HHMMSS_<mode>.html = dated archive (kept each run)
- */)
+ */
 const { spawn, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");

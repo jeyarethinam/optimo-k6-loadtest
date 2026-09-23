@@ -7,12 +7,35 @@ function envStr(name, fallback = "") {
   return v !== undefined && String(v).trim() !== "" ? String(v).trim() : fallback;
 }
 
+// export const BASE_URL = envStr(
+//   "BASE_URL",
+//   "https://optimodevv5-apis-a2a8g7ehdma3h0df.eastus-01.azurewebsites.net/restapi"
+// ).replace(/\/+$/, "");
+
+// export const LOGIN_PAYLOAD = {
+//   username: envStr("USERNAME", "optimo"),
+//   password: envStr("PASSWORD", "28N@pD3jTaz"),
+// };
+
+
+
+// export const BASE_URL = envStr(
+//   "BASE_URL",
+//   "https://onlocation-la28-uat-api.optimo.training/restapi"
+// ).replace(/\/+$/, "");
+
+// export const LOGIN_PAYLOAD = {
+//   username: envStr("USERNAME", "optimo"),
+//   password: envStr("PASSWORD", "12345"),
+// };
+
+
 export const BASE_URL = envStr(
   "BASE_URL",
-  "https://optimodevv5-apis-a2a8g7ehdma3h0df.eastus-01.azurewebsites.net/restapi"
+  "https://onlocation-la2028-loadtest-api-d9eah5euanaqcecz.eastus2-01.azurewebsites.net/restapi"
 ).replace(/\/+$/, "");
 
 export const LOGIN_PAYLOAD = {
   username: envStr("USERNAME", "optimo"),
-  password: envStr("PASSWORD", "28N@pD3jTaz"),
+  password: envStr("PASSWORD", "12345"),
 };

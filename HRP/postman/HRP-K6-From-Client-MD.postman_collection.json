@@ -26,14 +26,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/users/login?fields=token",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/users/login?fields=token",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "users",
                                                                                "login"
@@ -99,14 +97,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields\u0026sort=-BookingDate\u0026filters.clientRef=CO00007168\u0026filters.bookingStatusId=53,76,83,77,74,75,72,96,73,71,95,69,94,99,60\u0026filters.eventFromDate=2028-07-14\u0026filters.eventToDate=2028-07-30",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields\u0026sort=-BookingDate\u0026filters.clientRef=CO00007168\u0026filters.bookingStatusId=53,76,83,77,74,75,72,96,73,71,95,69,94,99,60\u0026filters.eventFromDate=2028-07-14\u0026filters.eventToDate=2028-07-30",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings"
                                                                            ],
@@ -165,14 +161,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings"
                                                                            ],
@@ -238,14 +232,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}"
@@ -280,14 +272,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}/notes",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}/notes",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}",
@@ -320,14 +310,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.2/bookings/{{bookingId}}/audit-histories",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.2/bookings/{{bookingId}}/audit-histories",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.2",
                                                                                "bookings",
                                                                                "{{bookingId}}",
@@ -365,14 +353,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}"
@@ -421,14 +407,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}"
@@ -477,14 +461,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}?include=client,bookingStatus,BookingUserDefinedFields,bookingPackages,package,contact,BookingPackageNotes,BookingItems,Item",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}"
@@ -533,14 +515,12 @@
                                                                      }
                                                                  ],
                                                       "url":  {
-                                                                  "raw":  "https://onlocation-la28-uat-api.optimo.training/restapi/api/V4.1/bookings/{{bookingId}}/cancel-booking",
-                                                                  "protocol":  "https",
+                                                                  "raw":  "{{BASE_URL}}/api/V4.1/bookings/{{bookingId}}/cancel-booking",
                                                                   "host":  [
-                                                                               "onlocation-la28-uat-api.optimo.training"
+                                                                               "{{BASE_URL}}"
                                                                            ],
                                                                   "path":  [
-                                                                               "restapi",
-                                                                               "api",
+                                                                                                                                                              "api",
                                                                                "V4.1",
                                                                                "bookings",
                                                                                "{{bookingId}}",
@@ -568,26 +548,31 @@
                               ]
                  }
              ],
-    "variable":  [
-                     {
-                         "key":  "username",
-                         "type":  "string",
-                         "value":  "optimo"
-                     },
-                     {
-                         "key":  "password",
-                         "type":  "string",
-                         "value":  "12345"
-                     },
-                     {
-                         "key":  "token",
-                         "type":  "string",
-                         "value":  ""
-                     },
-                     {
-                         "key":  "bookingId",
-                         "type":  "string",
-                         "value":  "142969"
-                     }
-                 ]
+    "variable": [
+        {
+            "key": "BASE_URL",
+            "type": "string",
+            "value": "https://onlocation-la28-uat-api.optimo.training/restapi"
+        },
+        {
+            "key": "username",
+            "type": "string",
+            "value": "optimo"
+        },
+        {
+            "key": "password",
+            "type": "string",
+            "value": "12345"
+        },
+        {
+            "key": "token",
+            "type": "string",
+            "value": ""
+        },
+        {
+            "key": "bookingId",
+            "type": "string",
+            "value": ""
+        }
+    ]
 }
