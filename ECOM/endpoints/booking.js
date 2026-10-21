@@ -208,9 +208,12 @@ export function packageSelect(token, packageId = null) {
   // const ids = envIds.length ? envIds : [7415,7414,7413,7412,7411,7410,7409,7408,7407,7406];//play
   // const ids = envIds.length ? envIds : [5241,5243,5245,5247,5249,5250,5251,5252];
   // const ids = envIds.length ? envIds : [6775,6774,6773,6772,6771,6770,6769,6768,6767,6766];
-    const ids = envIds.length ? envIds : [9062,9070,9071,9068,9067,9069,9066,9065,9065,9063]; // Prod Clone 
+    // const ids = envIds.length ? envIds : [9062,9071,9067,9069,9066,9065,9065,9063]; // Prod Clone 
     // const ids = envIds.length ? envIds : [9071]; // Prod Clone 
   // const ids = envIds.length ? envIds : [ 7643, 7642, 7641, 7640, 7639, 7638, 7637, 7636, 7635, 7634];//optimodevv5new
+  // const ids = envIds.length ? envIds : [ 7682, 7681, 7680, 7679, 7678];//optimodevv seat and table plan
+  const ids = envIds.length ? envIds : [ 7677, 7676, 7675, 7674, 7673];//optimodevv seat and table plan with reservation
+  
   const selectedId = packageId != null && packageId !== ""
     ? String(packageId)
     : String(ids[Math.floor(Math.random() * ids.length)]);
