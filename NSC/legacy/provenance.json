@@ -1,0 +1,180 @@
+{
+  "classification": "New recovery manifest",
+  "recovered_on": "2026-10-22",
+  "source_task_title": "NSC Load Test",
+  "source_task": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+  "source_project": "PenTests and LoadTests",
+  "source_project_id": "1681b116-77d3-4036-8107-78a655695b0e",
+  "access_route": "Supported read_thread with hostId local, followed by source-directory file reads",
+  "no_test_execution": true,
+  "no_nsc_requests": true,
+  "no_external_sharing": true,
+  "reconstructed_collection": false,
+  "files": [
+    {
+      "file": "nsc-k6-booking-3vu-sustained-write.js",
+      "classification": "Recovered original k6 script, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-3vu-sustained-write.js",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bd8-2149-7023-ada7-723d04243dfa",
+      "source_last_write_time": "2026-10-05T17:14:22.5685981+05:30",
+      "source_sha256": "B54BCBE5F4FE7B075D1933B38BAB8DA8018C2AD11F03FBF56F4978BC7A78C5B1",
+      "delivered_sha256": "9796C0FA758AAD9AEABD1A33BD4A9557715591B251EE039F42DE838D52B8569B",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced target origin with non-routable example.invalid placeholder.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-run-booking-3vu-sustained-write.ps1",
+      "classification": "Recovered original launcher, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-run-booking-3vu-sustained-write.ps1",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bd8-2149-7023-ada7-723d04243dfa",
+      "source_last_write_time": "2026-10-05T17:14:29.4589805+05:30",
+      "source_sha256": "50683D436BFFA4477DEFE7691DF6EB5DF40FF0CFBBB78E1DCE21E6C262F22FC2",
+      "delivered_sha256": "AC7470B8E0535FEF597494C9B12404AA97393458107FB6BCA55263C235381C70",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced literal account email addresses with example.invalid placeholders.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Replaced machine-specific k6 executable path with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-k6-booking-3vu-diagnostic.js",
+      "classification": "Recovered original k6 script, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-3vu-diagnostic.js",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10c1d-bc55-7240-b062-9ecd657dc684",
+      "source_last_write_time": "2026-10-05T18:21:58.8501592+05:30",
+      "source_sha256": "854FFFA5FBE216349E8757C28815733AB0C24C111362D57AEA6BEA1A4BE1D00B",
+      "delivered_sha256": "F37482467F08976869C3898B6C856F838FD7F0437AC80544D94FBA5CDC89BF29",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced target origin with non-routable example.invalid placeholder.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-run-booking-3vu-diagnostic.ps1",
+      "classification": "Recovered original launcher, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-run-booking-3vu-diagnostic.ps1",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10c1d-bc55-7240-b062-9ecd657dc684",
+      "source_last_write_time": "2026-10-05T18:22:08.4867044+05:30",
+      "source_sha256": "B6936E570FB85455ADA7294C58D374D6347089736A0D8DD01B1328E845AF5158",
+      "delivered_sha256": "38CCCE28B8D509B6DFE273C17B0EAEE5A17F5BF1A769D7C3C637D23448BBCC7A",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced literal account email addresses with example.invalid placeholders.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Replaced machine-specific k6 executable path with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-k6-booking-2vu-sustained-write.js",
+      "classification": "Recovered original comparison k6 script, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-2vu-sustained-write.js",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bef-c87d-70d2-b891-379a5728e3fb",
+      "source_last_write_time": "2026-10-05T17:31:53.2555628+05:30",
+      "source_sha256": "D955592FD4A59FA2BE6461F72330B234848633BEAA714D05AD7F3F62AD7BDC41",
+      "delivered_sha256": "E8D80A50F80EB105A7EF40668C69AF1EA17BA7A7AC16CE5307F68AEBEEF58225",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced target origin with non-routable example.invalid placeholder.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-run-booking-2vu-sustained-write.ps1",
+      "classification": "Recovered original comparison launcher, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-run-booking-2vu-sustained-write.ps1",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bef-c87d-70d2-b891-379a5728e3fb",
+      "source_last_write_time": "2026-10-05T17:32:11.5004658+05:30",
+      "source_sha256": "120AE0E2EF2797A9D06A8D00F428FBE6C7CBF752BDABBAC5E8D38588CC9CEE91",
+      "delivered_sha256": "33B329B92FA617912B8506CB631CA51E2441CAB6B93D80ECA23B698CBA70A0B9",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced literal account email addresses with example.invalid placeholders.",
+        "Replaced historical run identifier and matching run-confirmation value with a placeholder.",
+        "Replaced machine-specific k6 executable path with a placeholder.",
+        "Added a sanitized-copy provenance comment; retained original journey logic, payload schemas, workload and checks."
+      ]
+    },
+    {
+      "file": "nsc-booking-api-map.md",
+      "classification": "Recovered original API map, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-booking-api-map.md",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bca-bfd4-7e51-96ea-e466ddd1ef33",
+      "source_last_write_time": "2026-10-05T16:55:33.2616026+05:30",
+      "source_sha256": "C32CEDE61458164CAD6E72625A002265F3F653779F14516955EC36AADA97920C",
+      "delivered_sha256": "CD659385CA4B2533F41D94048893EB48F136C5DD14C34C599215AF2C3BC5C6B7",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced historical test-booking references and identifiers with placeholders.",
+        "Added a sanitized-copy and historical-link provenance note."
+      ]
+    },
+    {
+      "file": "nsc-three-user-draft-500-developer-report-2026-10-05.md",
+      "classification": "Recovered original developer report, sanitized",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-three-user-draft-500-developer-report-2026-10-05.md",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10c44-a0b1-74d2-95f9-85ee2ab58bf7",
+      "source_last_write_time": "2026-10-05T19:04:44.3409559+05:30",
+      "source_sha256": "AD5D256DB10DEC427E33487AE72E262C83FFA2C477165D7CB8C50D4F90C5D64D",
+      "delivered_sha256": "834167314DCCFBFFDF25DC14115982DBAF4D7F6D5BE2381E1DBDFABA627B8959",
+      "original_preserved": true,
+      "transformations": [
+        "Replaced historical test-booking references and identifiers with placeholders.",
+        "Added a sanitized-copy and historical-link provenance note."
+      ]
+    },
+    {
+      "file": "nsc-k6-booking-3vu-results-NSC-WRITE-20261005-1715.json",
+      "classification": "Recovered original aggregate metrics",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-3vu-results-NSC-WRITE-20261005-1715.json",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bd8-2149-7023-ada7-723d04243dfa",
+      "source_last_write_time": "2026-10-05T17:16:54.0421437+05:30",
+      "source_sha256": "8400A1DB1F4C0DC38233FB4352328D47889EBF4820E2F35D8C4C6091845C860C",
+      "delivered_sha256": "8400A1DB1F4C0DC38233FB4352328D47889EBF4820E2F35D8C4C6091845C860C",
+      "original_preserved": true,
+      "transformations": []
+    },
+    {
+      "file": "nsc-k6-booking-3vu-results-NSC-WRITE-20261005-1800.json",
+      "classification": "Recovered original aggregate metrics",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-3vu-results-NSC-WRITE-20261005-1800.json",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10c1d-bc55-7240-b062-9ecd657dc684",
+      "source_last_write_time": "2026-10-05T18:32:23.2096652+05:30",
+      "source_sha256": "ADEC339C0A9566BB15F514F7778F016F11DA2EF9FAD2DAF4F8F806F406088C24",
+      "delivered_sha256": "ADEC339C0A9566BB15F514F7778F016F11DA2EF9FAD2DAF4F8F806F406088C24",
+      "original_preserved": true,
+      "transformations": []
+    },
+    {
+      "file": "nsc-k6-booking-2vu-results-NSC-WRITE-20261005-1740.json",
+      "classification": "Recovered original aggregate comparison metrics",
+      "source_path": "C:\\Users\\nadit\\OneDrive\\Documents\\NK\\ChatGPT\\PenTests\\nsc-k6-booking-2vu-results-NSC-WRITE-20261005-1740.json",
+      "source_thread": "codex://threads/01a0f1ee-5caf-7592-976a-8ff06dc16e0c",
+      "source_turn": "01a10bef-c87d-70d2-b891-379a5728e3fb",
+      "source_last_write_time": "2026-10-05T17:39:32.3784230+05:30",
+      "source_sha256": "0EF3A7DF3B906196F070461E73E0090C43291FE177C8CCA8BF980A2503B408C6",
+      "delivered_sha256": "0EF3A7DF3B906196F070461E73E0090C43291FE177C8CCA8BF980A2503B408C6",
+      "original_preserved": true,
+      "transformations": []
+    }
+  ]
+}
