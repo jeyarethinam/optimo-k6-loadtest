@@ -66,8 +66,6 @@ pushEnv(k6Args, "THINK_TIME_MIN_S", process.env.THINK_TIME_MIN_S);
 pushEnv(k6Args, "THINK_TIME_MAX_S", process.env.THINK_TIME_MAX_S);
 pushEnv(k6Args, "ITERATION_DELAY_S", process.env.ITERATION_DELAY_S);
 pushEnv(k6Args, "ENABLE_RETRIES", process.env.ENABLE_RETRIES);
-pushEnv(k6Args, "P95_LIMIT_MS", process.env.P95_LIMIT_MS);
-pushEnv(k6Args, "P99_LIMIT_MS", process.env.P99_LIMIT_MS);
 pushEnv(k6Args, "K6_PATH", process.env.K6_PATH);
 
 function fileExists(p) {

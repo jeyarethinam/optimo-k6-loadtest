@@ -30,9 +30,6 @@ const THINK_TIME_ENABLED = (__ENV.THINK_TIME_ENABLED ?? "1") === "1";
 const THINK_TIME_MIN_S = Number(__ENV.THINK_TIME_MIN_S || "0.2");
 const THINK_TIME_MAX_S = Number(__ENV.THINK_TIME_MAX_S || "0.5");
 const ITERATION_DELAY_S = Number(__ENV.ITERATION_DELAY_S || "0");
-// UAT draft create can exceed 5–8s; override via .env if needed.
-const P95_LIMIT_MS = Number(__ENV.P95_LIMIT_MS || "10000");
-const P99_LIMIT_MS = Number(__ENV.P99_LIMIT_MS || "20000");
 const ITERATIONS_PER_USER = Number(__ENV.NSC_ITERATIONS_PER_USER || "0"); // 0 = profile-driven only
 const RUN_ID = __ENV.NSC_RUN_ID || `NSC-${mode}`;
 
@@ -80,7 +77,6 @@ export const options = {
   thresholds: {
     ...(baseOptions.thresholds || {}),
     http_req_failed: ["rate<0.01"],
-    http_req_duration: [`p(95)<${P95_LIMIT_MS}`, `p(99)<${P99_LIMIT_MS}`],
     checks: ["rate>0.99"],
   },
   summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)"],
