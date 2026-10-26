@@ -63,6 +63,17 @@ const vu3_diagnostic = {
 
 const peak10_1m = { vus: 10, duration: "1m" };
 
+/** Peak 20 / 5m / base 5: 5 → 10 → 20 → 10 → 5, one minute each. */
+const peak20 = {
+  stages: [
+    { duration: "1m", target: 5 },
+    { duration: "1m", target: 10 },
+    { duration: "1m", target: 20 },
+    { duration: "1m", target: 10 },
+    { duration: "1m", target: 5 },
+  ],
+};
+
 const peak50 = {
   stages: [
     { duration: "2m", target: 10 },
@@ -132,6 +143,8 @@ export const loadProfile = {
   vu3_diagnostic,
   peak10: peak10_1m,
   peak10_1m,
+  peak20,
+  peak20_5m: peak20,
   peak50,
   peak50_10m: peak50,
   peak100,

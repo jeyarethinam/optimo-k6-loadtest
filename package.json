@@ -41,6 +41,7 @@
     "vu3:nsc": "node NSC/run-load-test.js vu3",
     "vu3diag:nsc": "node NSC/run-load-test.js vu3_diagnostic",
     "peak10:nsc": "node NSC/run-load-test.js peak10",
+    "peak20:nsc": "node NSC/run-load-test.js peak20",
     "peak50:nsc": "node NSC/run-load-test.js peak50",
     "peak100:nsc": "node NSC/run-load-test.js peak100",
     "peak120:nsc": "node NSC/run-load-test.js peak120",
