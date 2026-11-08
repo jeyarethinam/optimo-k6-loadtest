@@ -48,3 +48,10 @@ HRP/postman/_analyze.js
 /report.html
 /summary.json
 /*.log
+/.vs
+/NSC/.nsc-last-report
+/ECOM/01- With Reservation Approach - 1 x 1250.html
+/ECOM/01- Without Reservation Approach - 1 x 1250.html
+/ECOM/01- Without Reservation Approach - 1 x 5000.html
+/ECOM/Existing Allocation Approach.html
+/ECOM/with reservation approach.html
